@@ -1,65 +1,130 @@
-import Image from "next/image";
+import KpiCard from "@/components/KpiCard";
+import { getDb } from "@/lib/db";
+import DashboardCharts from "./DashboardCharts";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+function getOverviewData() {
+  const db = getDb();
+
+  const totalJobs = (
+    db.prepare("SELECT COUNT(*) as c FROM jobs").get() as { c: number }
+  ).c;
+
+  const totalCompanies = (
+    db
+      .prepare(
+        "SELECT COUNT(DISTINCT company) as c FROM jobs WHERE company IS NOT NULL"
+      )
+      .get() as { c: number }
+  ).c;
+
+  const totalFields = (
+    db
+      .prepare(
+        "SELECT COUNT(DISTINCT field) as c FROM jobs WHERE field IS NOT NULL"
+      )
+      .get() as { c: number }
+  ).c;
+
+  const totalLocations = (
+    db
+      .prepare(
+        "SELECT COUNT(DISTINCT location) as c FROM jobs WHERE location IS NOT NULL"
+      )
+      .get() as { c: number }
+  ).c;
+
+  const dateRange = db
+    .prepare(
+      "SELECT MIN(posted_date) as earliest, MAX(posted_date) as latest FROM jobs WHERE posted_date IS NOT NULL"
+    )
+    .get() as { earliest: string | null; latest: string | null };
+
+  const topFields = db
+    .prepare(
+      `SELECT field as name, COUNT(*) as count
+       FROM jobs WHERE field IS NOT NULL
+       GROUP BY field ORDER BY count DESC LIMIT 8`
+    )
+    .all() as { name: string; count: number }[];
+
+  const topLocations = db
+    .prepare(
+      `SELECT location as name, COUNT(*) as count
+       FROM jobs WHERE location IS NOT NULL
+       GROUP BY location ORDER BY count DESC LIMIT 8`
+    )
+    .all() as { name: string; count: number }[];
+
+  const recentTrend = db
+    .prepare(
+      `SELECT posted_date as period, COUNT(*) as count
+       FROM jobs WHERE posted_date IS NOT NULL
+       GROUP BY posted_date ORDER BY posted_date ASC LIMIT 30`
+    )
+    .all() as { period: string; count: number }[];
+
+  return {
+    totalJobs,
+    totalCompanies,
+    totalFields,
+    totalLocations,
+    dateRange,
+    topFields,
+    topLocations,
+    recentTrend,
+  };
+}
+
+export default function DashboardPage() {
+  const data = getOverviewData();
+
+  const dateSubtitle = data.dateRange.earliest
+    ? `${data.dateRange.earliest} to ${data.dateRange.latest}`
+    : "No data yet";
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <p className="mt-1 text-sm text-zinc-500">
+          Kenya job market overview from MyJobMag
+        </p>
+      </div>
+
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          title="Total Jobs"
+          value={data.totalJobs}
+          subtitle={dateSubtitle}
+          accent="emerald"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        <KpiCard
+          title="Companies"
+          value={data.totalCompanies}
+          subtitle="Unique employers"
+          accent="blue"
+        />
+        <KpiCard
+          title="Job Fields"
+          value={data.totalFields}
+          subtitle="Distinct categories"
+          accent="amber"
+        />
+        <KpiCard
+          title="Locations"
+          value={data.totalLocations}
+          subtitle="Across Kenya"
+          accent="rose"
+        />
+      </div>
+
+      <DashboardCharts
+        topFields={data.topFields}
+        topLocations={data.topLocations}
+        recentTrend={data.recentTrend}
+      />
+    </>
   );
 }
