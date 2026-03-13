@@ -25,7 +25,7 @@ todos:
     status: completed
   - id: docs
     content: Write DOCS.md documenting architecture, setup, and usage
-    status: in_progress
+    status: completed
 isProject: false
 ---
 
