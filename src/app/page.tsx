@@ -35,12 +35,6 @@ function getOverviewData() {
       .get() as { c: number }
   ).c;
 
-  const dateRange = db
-    .prepare(
-      "SELECT MIN(posted_date) as earliest, MAX(posted_date) as latest FROM jobs WHERE posted_date IS NOT NULL"
-    )
-    .get() as { earliest: string | null; latest: string | null };
-
   const topFields = db
     .prepare(
       `SELECT field as name, COUNT(*) as count
@@ -57,32 +51,27 @@ function getOverviewData() {
     )
     .all() as { name: string; count: number }[];
 
-  const recentTrend = db
+  const topCompanies = db
     .prepare(
-      `SELECT strftime('%Y-%m', posted_date) as period, COUNT(*) as count
-       FROM jobs WHERE posted_date IS NOT NULL
-       GROUP BY period ORDER BY period ASC`
+      `SELECT company as name, COUNT(*) as count
+       FROM jobs WHERE company IS NOT NULL
+       GROUP BY company ORDER BY count DESC LIMIT 8`
     )
-    .all() as { period: string; count: number }[];
+    .all() as { name: string; count: number }[];
 
   return {
     totalJobs,
     totalCompanies,
     totalFields,
     totalLocations,
-    dateRange,
     topFields,
     topLocations,
-    recentTrend,
+    topCompanies,
   };
 }
 
 export default function DashboardPage() {
   const data = getOverviewData();
-
-  const dateSubtitle = data.dateRange.earliest
-    ? `${data.dateRange.earliest} to ${data.dateRange.latest}`
-    : "No data yet";
 
   return (
     <>
@@ -97,7 +86,7 @@ export default function DashboardPage() {
         <KpiCard
           title="Total Jobs"
           value={data.totalJobs}
-          subtitle={dateSubtitle}
+          subtitle="Scraped from MyJobMag"
           accent="emerald"
         />
         <KpiCard
@@ -123,7 +112,7 @@ export default function DashboardPage() {
       <DashboardCharts
         topFields={data.topFields}
         topLocations={data.topLocations}
-        recentTrend={data.recentTrend}
+        topCompanies={data.topCompanies}
       />
     </>
   );

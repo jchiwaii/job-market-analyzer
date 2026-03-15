@@ -33,7 +33,7 @@ export default function PieChartCard({
         {title}
       </h3>
       <div className="h-72">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <PieChart>
             <Pie
               data={sliced}

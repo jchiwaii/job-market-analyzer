@@ -34,7 +34,7 @@ export default function BarChartCard({
           {title}
         </h3>
         <div style={{ height: Math.max(250, sliced.length * 36) }}>
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <BarChart data={sliced} layout="vertical" margin={{ left: 10, right: 20 }}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
               <XAxis type="number" tick={{ fontSize: 12 }} />

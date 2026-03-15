@@ -3,38 +3,64 @@ import FieldsView from "./FieldsView";
 
 export const dynamic = "force-dynamic";
 
-function getFieldsData() {
+const PAGE_SIZE = 10;
+
+function getFieldsData(page: number) {
   const db = getDb();
+  const offset = (page - 1) * PAGE_SIZE;
+
+  const total = (
+    db
+      .prepare(
+        "SELECT COUNT(DISTINCT field) as c FROM jobs WHERE field IS NOT NULL AND field <> ''"
+      )
+      .get() as { c: number }
+  ).c;
 
   const fields = db
     .prepare(
       `SELECT field as name, COUNT(*) as count
-       FROM jobs WHERE field IS NOT NULL AND field != ''
-       GROUP BY field ORDER BY count DESC`
+       FROM jobs WHERE field IS NOT NULL AND field <> ''
+       GROUP BY field ORDER BY count DESC
+       LIMIT ${PAGE_SIZE} OFFSET ${offset}`
+    )
+    .all() as { name: string; count: number }[];
+
+  const top15 = db
+    .prepare(
+      `SELECT field as name, COUNT(*) as count
+       FROM jobs WHERE field IS NOT NULL AND field <> ''
+       GROUP BY field ORDER BY count DESC LIMIT 15`
     )
     .all() as { name: string; count: number }[];
 
   const qualifications = db
     .prepare(
       `SELECT qualification as name, COUNT(*) as count
-       FROM jobs WHERE qualification IS NOT NULL AND qualification != ''
-       GROUP BY qualification ORDER BY count DESC`
+       FROM jobs WHERE qualification IS NOT NULL AND qualification <> ''
+       GROUP BY qualification ORDER BY count DESC LIMIT 10`
     )
     .all() as { name: string; count: number }[];
 
   const jobTypes = db
     .prepare(
       `SELECT job_type as name, COUNT(*) as count
-       FROM jobs WHERE job_type IS NOT NULL AND job_type != ''
-       GROUP BY job_type ORDER BY count DESC`
+       FROM jobs WHERE job_type IS NOT NULL AND job_type <> ''
+       GROUP BY job_type ORDER BY count DESC LIMIT 10`
     )
     .all() as { name: string; count: number }[];
 
-  return { fields, qualifications, jobTypes };
+  return { fields, top15, qualifications, jobTypes, total, totalPages: Math.ceil(total / PAGE_SIZE) };
 }
 
-export default function FieldsPage() {
-  const data = getFieldsData();
+export default async function FieldsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam || "1", 10));
+  const { fields, top15, qualifications, jobTypes, total, totalPages } = getFieldsData(page);
 
   return (
     <>
@@ -45,9 +71,14 @@ export default function FieldsPage() {
         </p>
       </div>
       <FieldsView
-        fields={data.fields}
-        qualifications={data.qualifications}
-        jobTypes={data.jobTypes}
+        fields={fields}
+        top15={top15}
+        qualifications={qualifications}
+        jobTypes={jobTypes}
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={PAGE_SIZE}
       />
     </>
   );
