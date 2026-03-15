@@ -4,15 +4,23 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-const NAV_ITEMS = [
-  { href: "/", label: "Dashboard", icon: BarChartIcon },
-  { href: "/trends", label: "Trends", icon: TrendingUpIcon },
-  { href: "/fields", label: "Fields", icon: GridIcon },
-  { href: "/locations", label: "Locations", icon: MapPinIcon },
-  { href: "/companies", label: "Companies", icon: BuildingIcon },
-  { href: "/industry", label: "Industry", icon: IndustryIcon },
-  { href: "/insights", label: "Insights", icon: InsightsIcon },
-  { href: "/jobs", label: "All Jobs", icon: ListIcon },
+type IconProps = { className?: string };
+type NavItem = {
+  href: string;
+  label: string;
+  icon: (props: IconProps) => React.ReactNode;
+  badge?: string;
+};
+
+const NAV_ITEMS: NavItem[] = [
+  { href: "/", label: "Dashboard", icon: SquaresIcon },
+  { href: "/trends", label: "Trends", icon: TrendIcon },
+  { href: "/fields", label: "Fields", icon: SwapIcon },
+  { href: "/locations", label: "Locations", icon: ReceiptIcon },
+  { href: "/companies", label: "Companies", icon: CardIcon },
+  { href: "/industry", label: "Industry", icon: CoinsIcon },
+  { href: "/insights", label: "Insights", icon: EthIcon },
+  { href: "/jobs", label: "All Jobs", icon: NewspaperIcon },
 ];
 
 export default function Sidebar() {
@@ -22,132 +30,208 @@ export default function Sidebar() {
   return (
     <>
       <button
-        onClick={() => setOpen(!open)}
-        className="fixed top-4 left-4 z-50 rounded-lg bg-white p-2 shadow-md lg:hidden dark:bg-zinc-800"
+        onClick={() => setOpen((prev) => !prev)}
+        className="fixed top-4 left-4 z-50 rounded-xl border border-[#d6dfd4] bg-[#f9fbfa] p-2 text-[#24302c] shadow-sm lg:hidden"
         aria-label="Toggle menu"
       >
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           {open ? (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           ) : (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           )}
         </svg>
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={() => setOpen(false)} />
+        <div
+          className="fixed inset-0 z-30 bg-[#1e4841]/20 lg:hidden"
+          onClick={() => setOpen(false)}
+          aria-hidden="true"
+        />
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-40 flex h-full w-64 flex-col border-r border-zinc-200 bg-white transition-transform lg:static lg:translate-x-0 dark:border-zinc-800 dark:bg-zinc-900 ${
+        className={`fixed top-0 left-0 z-40 h-screen w-[192px] border-r border-[#d9e2d7] bg-[#ecf4e9] px-4 py-[22px] transition-transform lg:static lg:h-auto lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-16 items-center gap-2 border-b border-zinc-200 px-6 dark:border-zinc-800">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-sm font-bold text-white">
-            KE
-          </div>
-          <div>
-            <h1 className="text-sm font-semibold text-zinc-900 dark:text-white">
-              Job Market
-            </h1>
-            <p className="text-xs text-zinc-500">Kenya Analyzer</p>
-          </div>
-        </div>
+        <div className="flex h-full flex-col">
+          <header className="flex h-[38px] items-center px-2">
+            <div className="flex items-center gap-3">
+              <BrandSymbol className="h-[22px] w-[22px]" />
+              <span className="text-lg font-bold tracking-tight text-[#24302c]">MyJobMag</span>
+            </div>
+          </header>
 
-        <nav className="flex-1 space-y-1 p-3">
-          {NAV_ITEMS.map((item) => {
-            const active = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                  active
-                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                    : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-                }`}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+          <nav className="mt-5 flex flex-1 flex-col gap-2">
+            {NAV_ITEMS.map((item) => {
+              const active = pathname === item.href;
 
-        <div className="border-t border-zinc-200 p-4 dark:border-zinc-800">
-          <p className="text-xs text-zinc-400">
-            Source: MyJobMag Kenya
-          </p>
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={`flex h-10 items-center gap-3 rounded-full px-4 transition-colors ${
+                    active
+                      ? "bg-[#bbf49c] text-[#24302c]"
+                      : "text-[#6b726f] hover:bg-[#e4ece1] hover:text-[#24302c]"
+                  }`}
+                >
+                  <item.icon className="h-6 w-6" />
+                  <span className="text-sm font-semibold leading-none">{item.label}</span>
+
+                  {item.badge && (
+                    <span className="ml-auto flex items-center gap-2">
+                      {item.badge && <Badge>{item.badge}</Badge>}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <PromoCard />
         </div>
       </aside>
     </>
   );
 }
 
-function BarChartIcon({ className }: { className?: string }) {
+function PromoCard() {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13h2v8H3zm6-4h2v12H9zm6-3h2v15h-2zm6-4h2v19h-2z" />
+    <div className="relative mt-5 rounded-2xl bg-[#1e4841] p-4 text-[#ecf4e9]">
+      <div className="absolute -top-2 right-[-6px] opacity-95">
+        <BrandSymbol className="h-[65px] w-[65px]" muted />
+      </div>
+
+      <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#ecf4e9]">
+        <BrandSymbol className="h-[18px] w-[18px] text-[#1e4841]" mono />
+      </div>
+
+      <p className="mt-4 text-sm font-semibold leading-relaxed text-[#bbf49c]">
+        About this project
+      </p>
+      <p className="mt-1 text-xs leading-relaxed text-[#c8d9c6]">
+        A personal data project scraping and analysing the Kenyan job market using listings from MyJobMag.
+      </p>
+    </div>
+  );
+}
+
+function Badge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#f73640] px-1 text-[10px] font-semibold leading-none text-[#fbfbfc]">
+      {children}
+    </span>
+  );
+}
+
+function BrandSymbol({
+  className,
+  muted,
+  mono,
+}: {
+  className?: string;
+  muted?: boolean;
+  mono?: boolean;
+}) {
+  const dark = mono ? "#1e4841" : muted ? "#bbf49c" : "#1e4841";
+  const light = mono ? "#ecf4e9" : muted ? "#ecf4e9" : "#fbfbfc";
+
+  return (
+    <svg className={className} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="5" cy="17" r="5" fill={dark} />
+      <circle cx="17" cy="17" r="5" fill={dark} />
+      <circle cx="17" cy="5" r="5" fill={dark} />
+      <circle cx="5" cy="5" r="5" fill={dark} />
+      <path
+        d="M8.5 11.4V10a2.5 2.5 0 0 1 4.9-.8"
+        stroke={light}
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+      <rect x="8.2" y="11.1" width="5.8" height="4.6" rx="1.6" fill={light} />
+      <circle cx="11.1" cy="13.4" r="0.85" fill={dark} />
     </svg>
   );
 }
 
-function TrendingUpIcon({ className }: { className?: string }) {
+function SquaresIcon({ className }: IconProps) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2 20l7.5-7.5L13 16l9-9m0 0h-6m6 0v6" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="4" width="7" height="7" rx="2" fill="currentColor" />
+      <rect x="13" y="4" width="7" height="7" rx="2" fill="currentColor" />
+      <rect x="4" y="13" width="7" height="7" rx="2" fill="currentColor" />
+      <rect x="13" y="13" width="7" height="7" rx="2" fill="currentColor" />
     </svg>
   );
 }
 
-function GridIcon({ className }: { className?: string }) {
+function TrendIcon({ className }: IconProps) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 16.5h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M6 13l4.5-4.5 3 3L18 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-function MapPinIcon({ className }: { className?: string }) {
+function SwapIcon({ className }: IconProps) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 8h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M15 5l4 3-4 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19 16H5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M9 19l-4-3 4-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-function BuildingIcon({ className }: { className?: string }) {
+function ReceiptIcon({ className }: IconProps) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 4h12v16l-3-2-3 2-3-2-3 2V4Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M9 9h6M9 13h6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
     </svg>
   );
 }
 
-function ListIcon({ className }: { className?: string }) {
+function CardIcon({ className }: IconProps) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="5.5" width="18" height="13" rx="3" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M3 10h18" stroke="currentColor" strokeWidth="1.8" />
     </svg>
   );
 }
 
-function IndustryIcon({ className }: { className?: string }) {
+function CoinsIcon({ className }: IconProps) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m2.25-18v18m13.5-18v18m2.25-18v18M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M12 3.75h.008v.008H12V3.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="10" cy="7" rx="5.5" ry="2.7" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M4.5 7v6c0 1.5 2.5 2.7 5.5 2.7s5.5-1.2 5.5-2.7V7" stroke="currentColor" strokeWidth="1.6" />
+      <ellipse cx="15.6" cy="12.8" rx="3.9" ry="2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M11.7 12.8v4.3c0 1.1 1.7 2 3.9 2s3.9-.9 3.9-2v-4.3" stroke="currentColor" strokeWidth="1.6" />
     </svg>
   );
 }
 
-function InsightsIcon({ className }: { className?: string }) {
+function EthIcon({ className }: IconProps) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2.5 6.5 12 12 15.3 17.5 12 12 2.5Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M6.5 13.3 12 21l5.5-7.7L12 16.6l-5.5-3.3Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function NewspaperIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 5h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5Z" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M8 9h8M8 12h8M8 15h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
     </svg>
   );
 }

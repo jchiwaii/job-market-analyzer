@@ -75,36 +75,38 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="mt-1 text-sm text-zinc-500">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl font-bold tracking-tight text-[#23302D] sm:text-2xl lg:text-[30px]">
+          Dashboard
+        </h1>
+        <p className="mt-1 max-w-2xl text-sm text-[#6E7875]">
           Kenya job market overview from MyJobMag
         </p>
       </div>
 
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
         <KpiCard
           title="Total Jobs"
           value={data.totalJobs}
-          subtitle="Scraped from MyJobMag"
+          description="The total number of job listings collected from MyJobMag across all categories and regions."
           accent="emerald"
         />
         <KpiCard
           title="Companies"
           value={data.totalCompanies}
-          subtitle="Unique employers"
+          description="The number of distinct companies that have posted at least one job listing in the dataset."
           accent="blue"
         />
         <KpiCard
           title="Job Fields"
           value={data.totalFields}
-          subtitle="Distinct categories"
+          description="The number of unique job categories or fields represented, e.g. Engineering, Finance, Health."
           accent="amber"
         />
         <KpiCard
           title="Locations"
           value={data.totalLocations}
-          subtitle="Across Kenya"
+          description="The number of distinct towns or regions in Kenya where job opportunities have been listed."
           accent="rose"
         />
       </div>
