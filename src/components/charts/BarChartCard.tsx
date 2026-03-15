@@ -41,7 +41,7 @@ export default function BarChartCard({
               <YAxis
                 dataKey="name"
                 type="category"
-                width={160}
+                width={220}
                 tick={{ fontSize: 11 }}
               />
               <Tooltip

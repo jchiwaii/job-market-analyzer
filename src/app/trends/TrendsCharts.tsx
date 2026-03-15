@@ -12,7 +12,7 @@ interface Props {
 type View = "daily" | "weekly" | "monthly";
 
 export default function TrendsCharts({ daily, weekly, monthly }: Props) {
-  const [view, setView] = useState<View>("daily");
+  const [view, setView] = useState<View>("monthly");
 
   const datasets: Record<View, { period: string; count: number }[]> = {
     daily,

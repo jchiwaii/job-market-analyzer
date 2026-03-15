@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "scrape": "tsx scripts/scrape.ts"
+    "scrape": "tsx scripts/scrape.ts",
+    "scrape:deep": "tsx scripts/scrape-deep.ts"
   },
   "dependencies": {
     "better-sqlite3": "^12.6.2",

@@ -17,7 +17,7 @@ export default function DashboardCharts({
 }: Props) {
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <LineChartCard title="Jobs Posted Over Time" data={recentTrend} />
+      <LineChartCard title="Jobs Posted per Month" data={recentTrend} />
       <PieChartCard title="Top Job Fields" data={topFields} />
       <BarChartCard
         title="Jobs by Location"

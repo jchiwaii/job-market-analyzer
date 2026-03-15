@@ -59,9 +59,9 @@ function getOverviewData() {
 
   const recentTrend = db
     .prepare(
-      `SELECT posted_date as period, COUNT(*) as count
+      `SELECT strftime('%Y-%m', posted_date) as period, COUNT(*) as count
        FROM jobs WHERE posted_date IS NOT NULL
-       GROUP BY posted_date ORDER BY posted_date ASC LIMIT 30`
+       GROUP BY period ORDER BY period ASC`
     )
     .all() as { period: string; count: number }[];
 
