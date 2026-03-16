@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import KpiCard from "@/components/KpiCard";
 import InsightsView from "./InsightsView";
 
 export const dynamic = "force-dynamic";
@@ -182,14 +183,47 @@ export default function InsightsPage() {
     topQualByField,
   } = getInsightsData();
 
+  const totalWorkType = workTypes.reduce((s, r) => s + r.count, 0);
+  const remoteCount = workTypes.find((w) => w.category === "Remote")?.count ?? 0;
+  const remotePct = totalWorkType > 0 ? Math.round((remoteCount / totalWorkType) * 100) : 0;
+  const topCombo = fieldLocationCombos[0];
+
   return (
     <>
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Insights</h1>
         <p className="mt-1 text-sm text-zinc-500">
           Deep-dive analysis of work arrangements, experience, company structure, and more
         </p>
       </div>
+
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <KpiCard
+          title="Most Common Arrangement"
+          value={workTypes[0]?.category ?? "—"}
+          subtitle={`${(workTypes[0]?.count ?? 0).toLocaleString()} listings`}
+          accent="emerald"
+        />
+        <KpiCard
+          title="Most Demanded Experience"
+          value={experienceBuckets[0]?.bucket ?? "—"}
+          subtitle={`${(experienceBuckets[0]?.count ?? 0).toLocaleString()} listings`}
+          accent="blue"
+        />
+        <KpiCard
+          title="Remote Jobs"
+          value={`${remotePct}%`}
+          subtitle={`${remoteCount.toLocaleString()} remote listings`}
+          accent="amber"
+        />
+        <KpiCard
+          title="Top Field–City Hotspot"
+          value={topCombo ? `${topCombo.field}` : "—"}
+          subtitle={topCombo ? `${topCombo.location} · ${topCombo.count.toLocaleString()} jobs` : undefined}
+          accent="rose"
+        />
+      </div>
+
       <InsightsView
         workTypes={workTypes}
         experienceBuckets={experienceBuckets}

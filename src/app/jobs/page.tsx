@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import KpiCard from "@/components/KpiCard";
 import JobsTable from "./JobsTable";
 
 export const dynamic = "force-dynamic";
@@ -86,18 +87,46 @@ async function getJobsData(searchParams: { [key: string]: string | undefined }) 
   };
 }
 
+function getGlobalStats() {
+  const db = getDb();
+  const totalAll = (db.prepare("SELECT COUNT(*) as c FROM jobs").get() as { c: number }).c;
+  const uniqueCompanies = (
+    db.prepare("SELECT COUNT(DISTINCT company) as c FROM jobs WHERE company IS NOT NULL AND company <> ''").get() as { c: number }
+  ).c;
+  const uniqueLocations = (
+    db.prepare("SELECT COUNT(DISTINCT location) as c FROM jobs WHERE location IS NOT NULL AND location <> ''").get() as { c: number }
+  ).c;
+  const withDates = (
+    db.prepare("SELECT COUNT(*) as c FROM jobs WHERE posted_date IS NOT NULL").get() as { c: number }
+  ).c;
+  return { totalAll, uniqueCompanies, uniqueLocations, withDates };
+}
+
 export default async function JobsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
-  const data = await getJobsData(sp);
+  const [data, global] = await Promise.all([getJobsData(sp), Promise.resolve(getGlobalStats())]);
 
   return (
     <>
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">All Jobs</h1>
         <p className="mt-1 text-sm text-zinc-500">
           Browse {data.total.toLocaleString()} scraped jobs
         </p>
       </div>
+
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <KpiCard title="Total Listings" value={global.totalAll} subtitle="scraped from MyJobMag" accent="emerald" />
+        <KpiCard title="Hiring Companies" value={global.uniqueCompanies} subtitle="unique employers" accent="blue" />
+        <KpiCard title="Locations Covered" value={global.uniqueLocations} subtitle="cities & counties" accent="rose" />
+        <KpiCard
+          title="Dated Listings"
+          value={global.withDates.toLocaleString()}
+          subtitle="have a posted date (recent active)"
+          accent="amber"
+        />
+      </div>
+
       <JobsTable
         jobs={data.jobs}
         total={data.total}

@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import KpiCard from "@/components/KpiCard";
 import FieldsView from "./FieldsView";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +51,13 @@ function getFieldsData(page: number) {
     )
     .all() as { name: string; count: number }[];
 
-  return { fields, top15, qualifications, jobTypes, total, totalPages: Math.ceil(total / PAGE_SIZE) };
+  const totalJobsWithField = (
+    db
+      .prepare("SELECT COUNT(*) as c FROM jobs WHERE field IS NOT NULL AND field <> ''")
+      .get() as { c: number }
+  ).c;
+
+  return { fields, top15, qualifications, jobTypes, total, totalPages: Math.ceil(total / PAGE_SIZE), totalJobsWithField };
 }
 
 export default async function FieldsPage({
@@ -60,16 +67,41 @@ export default async function FieldsPage({
 }) {
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, parseInt(pageParam || "1", 10));
-  const { fields, top15, qualifications, jobTypes, total, totalPages } = getFieldsData(page);
+  const { fields, top15, qualifications, jobTypes, total, totalPages, totalJobsWithField } = getFieldsData(page);
+
+  const dominantPct = top15[0] ? Math.round((top15[0].count / totalJobsWithField) * 100) : 0;
 
   return (
     <>
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Job Fields</h1>
         <p className="mt-1 text-sm text-zinc-500">
           Breakdown by field, qualification, and job type
         </p>
       </div>
+
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <KpiCard title="Unique Job Fields" value={total} accent="emerald" />
+        <KpiCard
+          title="Dominant Field"
+          value={top15[0]?.name ?? "—"}
+          subtitle={`${dominantPct}% of field-tagged jobs`}
+          accent="amber"
+        />
+        <KpiCard
+          title="Most Required Qualification"
+          value={qualifications[0]?.name ?? "—"}
+          subtitle={`${(qualifications[0]?.count ?? 0).toLocaleString()} listings`}
+          accent="blue"
+        />
+        <KpiCard
+          title="Most Common Work Type"
+          value={jobTypes[0]?.name ?? "—"}
+          subtitle={`${(jobTypes[0]?.count ?? 0).toLocaleString()} listings`}
+          accent="rose"
+        />
+      </div>
+
       <FieldsView
         fields={fields}
         top15={top15}

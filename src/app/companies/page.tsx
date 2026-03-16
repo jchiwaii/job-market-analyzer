@@ -1,4 +1,5 @@
 import { getDb } from "@/lib/db";
+import KpiCard from "@/components/KpiCard";
 import CompaniesView from "./CompaniesView";
 
 export const dynamic = "force-dynamic";
@@ -47,7 +48,24 @@ function getCompaniesData(page: number) {
     )
     .all() as { name: string; count: number }[];
 
-  return { companies, total, top15, totalPages: Math.ceil(total / PAGE_SIZE) };
+  const totalCompanyJobs = (
+    db
+      .prepare("SELECT COUNT(*) as c FROM jobs WHERE company IS NOT NULL AND company <> ''")
+      .get() as { c: number }
+  ).c;
+
+  const singleJobCompanies = (
+    db
+      .prepare(
+        `SELECT COUNT(*) as c FROM (
+           SELECT company FROM jobs WHERE company IS NOT NULL AND company <> ''
+           GROUP BY company HAVING COUNT(*) = 1
+         )`
+      )
+      .get() as { c: number }
+  ).c;
+
+  return { companies, total, top15, totalPages: Math.ceil(total / PAGE_SIZE), totalCompanyJobs, singleJobCompanies };
 }
 
 export default async function CompaniesPage({
@@ -57,16 +75,42 @@ export default async function CompaniesPage({
 }) {
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, parseInt(pageParam || "1", 10));
-  const { companies, total, top15, totalPages } = getCompaniesData(page);
+  const { companies, total, top15, totalPages, totalCompanyJobs, singleJobCompanies } = getCompaniesData(page);
+
+  const avgJobsPerCompany = total > 0 ? Math.round(totalCompanyJobs / total) : 0;
+  const singleJobPct = total > 0 ? Math.round((singleJobCompanies / total) * 100) : 0;
 
   return (
     <>
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Companies</h1>
         <p className="mt-1 text-sm text-zinc-500">
           {total.toLocaleString()} unique hiring companies on MyJobMag Kenya
         </p>
       </div>
+
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <KpiCard title="Unique Companies" value={total} accent="emerald" />
+        <KpiCard
+          title="Top Employer"
+          value={top15[0]?.name ?? "—"}
+          subtitle={`${(top15[0]?.count ?? 0).toLocaleString()} job listings`}
+          accent="blue"
+        />
+        <KpiCard
+          title="Avg Jobs per Company"
+          value={avgJobsPerCompany}
+          subtitle="across all hiring companies"
+          accent="amber"
+        />
+        <KpiCard
+          title="Single-Listing Companies"
+          value={`${singleJobPct}%`}
+          subtitle={`${singleJobCompanies.toLocaleString()} companies posted just once`}
+          accent="rose"
+        />
+      </div>
+
       <CompaniesView
         companies={companies}
         top15={top15}
