@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import BarChartCard from "@/components/charts/BarChartCard";
 import PieChartCard from "@/components/charts/PieChartCard";
 import ChartErrorBoundary from "@/components/ChartErrorBoundary";
@@ -93,73 +93,90 @@ export default function InsightsView({
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <section className="rounded-2xl border border-[#D6E1EE] bg-gradient-to-r from-[#F5FAF4] via-white to-[#EEF4FA] p-4 sm:p-5">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#58706A]">
-              Narrative Layer
+      <section className="space-y-4">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+          <article className="rounded-2xl border border-[#E4E8E6] bg-white p-5">
+            <h3 className="text-base font-semibold text-[#24302C]">
+              {topWork?.category ?? "Full Time"} dominates Kenya&apos;s job listings
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-[#5E6B77]">
+              When broken down by work arrangement, the shape of Kenya&apos;s job market becomes
+              clear. Employers are not experimenting with flexibility at scale, and listings
+              remain heavily concentrated in one traditional model.
             </p>
-            <h2 className="mt-1 text-[17px] font-semibold text-[#24302C]">
-              Insight + Illustration Blocks
-            </h2>
-          </div>
-          <span className="inline-flex w-fit items-center rounded-full border border-[#C8DCD2] bg-[#ECF4E9] px-3 py-1 text-[11px] font-semibold text-[#1E4841]">
-            Data-driven
-          </span>
-        </div>
+            <WorkTypeIllustration workTypes={workTypes} />
+            <p className="mt-3 text-sm leading-relaxed text-[#2F3C38]">
+{topWork?.category ?? "Full Time"} roles account for {topWorkPct}% of arrangement-tagged
+              listings, while remote work remains at {remoteWorkPct}%.
+            </p>
+          </article>
 
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          <InsightNarrativeCard
-            step="Market Signal 01"
-            title={`${topWork?.category ?? "Full Time"} dominates Kenya's job listings`}
-            beforeText={`When broken down by work arrangement, the shape of Kenya's job market becomes stark. Employers are not experimenting with flexibility at scale — listings cluster heavily under one traditional model, leaving little room for hybrid or remote-first hiring.`}
-            afterText={`${topWork?.category ?? "Full Time"} roles account for ${topWorkPct}% of all arrangement-tagged listings. Remote work sits at just ${remoteWorkPct}%, confirming that flexible employment is still a niche offering rather than a mainstream option in Kenya's formal job market.`}
-            illustration={<WorkTypeIllustration workTypes={workTypes} />}
-          />
-          <InsightNarrativeCard
-            step="Market Signal 02"
-            title={`${topBucket?.bucket ?? "3–5 years"} is the market's experience sweet spot`}
-            beforeText={`Employers aren't hiring fresh graduates at scale, nor are they overwhelmingly seeking senior experts. The data reveals a clear concentration around one experience band — the tier that offers immediate impact without senior-level costs.`}
-            afterText={`${topBucketPct}% of all experience-tagged listings target the ${topBucket?.bucket ?? "3–5 years"} bracket, making it the single largest demand segment. Entry-level roles (0–1 year) account for just ${entryPct}%, confirming the market skews firmly toward experienced mid-career professionals.`}
-            illustration={<ExperienceDemandIllustration experienceBuckets={experienceBuckets} />}
-          />
+          <article className="rounded-2xl border border-[#E4E8E6] bg-white p-5">
+            <h3 className="text-base font-semibold text-[#24302C]">
+              {topBucket?.bucket ?? "3–5 years"} is the market&apos;s experience sweet spot
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-[#5E6B77]">
+              The demand pattern is concentrated around one experience band, which indicates that
+              employers are prioritizing professionals who can deliver quickly without senior-level
+              cost.
+            </p>
+            <ExperienceDemandIllustration experienceBuckets={experienceBuckets} />
+            <p className="mt-3 text-sm leading-relaxed text-[#2F3C38]">
+{topBucketPct}% of experience-tagged listings target {topBucket?.bucket ?? "3–5 years"},
+              while entry-level (0-1 year) roles contribute {entryPct}%.
+            </p>
+          </article>
         </div>
       </section>
 
-      <ChartErrorBoundary>
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-          <BarChartCard
-            title="Work Arrangement Distribution"
-            data={workTypeData}
-            color="#1E4841"
-            horizontal
-            maxItems={8}
-            dashboardStyle
-            dashboardVariant="focus"
-            className="xl:col-span-2"
-          />
-          <PieChartCard title="Experience Bucket Mix" data={expBucketData} maxItems={7} />
+      <section className="space-y-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#58706A]">Chart Layer</p>
+          <h2 className="mt-1 text-[18px] font-semibold text-[#24302C]">Market Structure</h2>
+          <p className="mt-1 text-sm text-[#6B726F]">
+            Responsive charts for arrangement, experience, concentration, and field seniority.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          <BarChartCard
-            title="Company Concentration by Posting Volume"
-            data={companyConcentrationData}
-            color="#2F5F90"
-            horizontal
-            maxItems={10}
-            dashboardStyle
-          />
-          <BarChartCard
-            title="Average Years Experience by Field"
-            data={expByFieldData}
-            color="#9F6A1F"
-            horizontal
-            maxItems={12}
-            dashboardStyle
-          />
-        </div>
-      </ChartErrorBoundary>
+        <ChartErrorBoundary>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <BarChartCard
+              title="Work Arrangement Distribution"
+              data={workTypeData}
+              color="#1E4841"
+              horizontal
+              maxItems={8}
+              dashboardStyle
+              dashboardVariant="focus"
+              className="min-w-0 lg:col-span-2"
+            />
+            <div className="min-w-0">
+              <PieChartCard title="Experience Bucket Mix" data={expBucketData} maxItems={7} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <BarChartCard
+              title="Company Concentration by Posting Volume"
+              data={companyConcentrationData}
+              color="#2F5F90"
+              horizontal
+              maxItems={10}
+              dashboardStyle
+              className="min-w-0"
+            />
+            <BarChartCard
+              title="Average Years Experience by Field"
+              data={expByFieldData}
+              color="#9F6A1F"
+              horizontal
+              maxItems={12}
+              dashboardStyle
+              className="min-w-0"
+            />
+          </div>
+        </ChartErrorBoundary>
+      </section>
 
       <section className="rounded-2xl border border-[#E4E8E6] bg-white p-4 sm:p-5">
         <div className="mb-4 flex flex-col gap-3 lg:mb-5 lg:flex-row lg:items-center lg:justify-between">
@@ -351,39 +368,6 @@ export default function InsightsView({
   );
 }
 
-interface InsightNarrativeCardProps {
-  step: string;
-  title: string;
-  beforeText: string;
-  afterText: string;
-  illustration: ReactNode;
-}
-
-function InsightNarrativeCard({
-  step,
-  title,
-  beforeText,
-  afterText,
-  illustration,
-}: InsightNarrativeCardProps) {
-  return (
-    <article className="rounded-2xl border border-[#D6E1EE] bg-white p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-[#58706A]">{step}</p>
-      <h3 className="mt-2 text-sm font-semibold text-[#24302C]">{title}</h3>
-      <p className="mt-2 text-xs leading-relaxed text-[#5E6B77]">{beforeText}</p>
-
-      <div className="mt-4 rounded-xl border border-[#E4E8E6] bg-[#F8FBF7] p-3">{illustration}</div>
-
-      <div className="mt-3 rounded-lg border border-dashed border-[#C8DCD2] bg-[#ECF4E9] p-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-[#1E4841]">
-          Important Insight
-        </p>
-        <p className="mt-1 text-sm text-[#2F3C38]">{afterText}</p>
-      </div>
-    </article>
-  );
-}
-
 const WORK_TYPE_COLORS: Record<string, string> = {
   "Full Time": "#1E4841",
   "Part Time": "#2F5F90",
@@ -396,15 +380,15 @@ const WORK_TYPE_COLORS: Record<string, string> = {
 function WorkTypeIllustration({ workTypes }: { workTypes: WorkTypeRow[] }) {
   const total = workTypes.reduce((s, r) => s + r.count, 0);
   const top4 = workTypes.slice(0, 4);
-  const leftPad = 66;
-  const rightPad = 34;
-  const barAreaW = 280 - leftPad - rightPad;
-  const barH = 13;
-  const rowH = 26;
-  const topPad = 8;
+  const leftPad = 92;
+  const rightPad = 42;
+  const barAreaW = 360 - leftPad - rightPad;
+  const barH = 18;
+  const rowH = 34;
+  const topPad = 12;
 
   return (
-    <svg viewBox="0 0 280 112" className="h-[112px] w-full" fill="none" aria-hidden>
+    <svg viewBox="0 0 360 160" className="mt-4 h-[170px] w-full" fill="none" aria-hidden>
       {top4.map((row, i) => {
         const pct = total > 0 ? Math.round((row.count / total) * 100) : 0;
         const barW = total > 0 ? Math.max(4, (row.count / total) * barAreaW) : 4;
@@ -415,9 +399,9 @@ function WorkTypeIllustration({ workTypes }: { workTypes: WorkTypeRow[] }) {
           <g key={row.category}>
             <text
               x={leftPad - 6}
-              y={y + barH - 1}
+              y={y + barH - 2}
               textAnchor="end"
-              fontSize="9"
+              fontSize="12"
               fill="#6B726F"
               fontWeight="600"
             >
@@ -427,9 +411,9 @@ function WorkTypeIllustration({ workTypes }: { workTypes: WorkTypeRow[] }) {
             <rect x={leftPad} y={y} width={barW} height={barH} rx={4} fill={color} />
             <text
               x={leftPad + barAreaW + 5}
-              y={y + barH - 1}
+              y={y + barH - 2}
               textAnchor="start"
-              fontSize="9"
+              fontSize="11"
               fill="#24302C"
               fontWeight="700"
             >
@@ -450,11 +434,11 @@ function ExperienceDemandIllustration({
   if (experienceBuckets.length === 0) return null;
 
   const maxCount = Math.max(...experienceBuckets.map((b) => b.count), 1);
-  const chartH = 72;
-  const topPad = 8;
-  const leftPad = 10;
-  const rightPad = 10;
-  const availW = 280 - leftPad - rightPad;
+  const chartH = 108;
+  const topPad = 32;
+  const leftPad = 14;
+  const rightPad = 14;
+  const availW = 360 - leftPad - rightPad;
   const n = experienceBuckets.length;
   const gapW = 7;
   const barW = Math.floor((availW - gapW * (n - 1)) / n);
@@ -469,11 +453,11 @@ function ExperienceDemandIllustration({
   const peakY = topPad + chartH - peakH;
 
   return (
-    <svg viewBox="0 0 280 112" className="h-[112px] w-full" fill="none" aria-hidden>
+    <svg viewBox="0 0 360 180" className="mt-4 h-[190px] w-full" fill="none" aria-hidden>
       <line
         x1={leftPad}
         y1={topPad + chartH}
-        x2={280 - rightPad}
+        x2={360 - rightPad}
         y2={topPad + chartH}
         stroke="#D3DDD8"
         strokeWidth="1.5"
@@ -492,9 +476,9 @@ function ExperienceDemandIllustration({
             <rect x={x} y={y} width={barW} height={h} rx={3} fill={isPeak ? "#1E4841" : "#BBF49C"} />
             <text
               x={x + barW / 2}
-              y={topPad + chartH + 15}
+              y={topPad + chartH + 22}
               textAnchor="middle"
-              fontSize="7.5"
+              fontSize="9.5"
               fill={isPeak ? "#1E4841" : "#6B726F"}
               fontWeight={isPeak ? "700" : "500"}
             >
@@ -503,12 +487,12 @@ function ExperienceDemandIllustration({
           </g>
         );
       })}
-      <rect x={peakX - 22} y={peakY - 22} width={44} height={17} rx={5} fill="#1E4841" />
+      <rect x={peakX - 26} y={peakY - 28} width={52} height={20} rx={6} fill="#1E4841" />
       <text
         x={peakX}
-        y={peakY - 9}
+        y={peakY - 14}
         textAnchor="middle"
-        fontSize="8.5"
+        fontSize="10"
         fontWeight="700"
         fill="#BBF49C"
       >

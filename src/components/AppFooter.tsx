@@ -7,13 +7,7 @@ export default function AppFooter() {
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
           <p className="font-medium text-[#24302C]">Copyright © {year} John Chiwai</p>
           <a
-            href="mailto:chiwai.kiriba@gmail.com"
-            className="text-[#6B726F] underline-offset-2 transition-colors hover:text-[#1E4841] hover:underline"
-          >
-            Contact: chiwai.kiriba@gmail.com
-          </a>
-          <a
-            href="https://medium.com/"
+            href="https://medium.com/@chiwai.kiriba"
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold text-[#1E4841] underline-offset-2 transition-colors hover:text-[#173832] hover:underline"
@@ -32,7 +26,7 @@ export default function AppFooter() {
             LinkedIn
           </a>
           <a
-            href="https://medium.com/"
+            href="https://medium.com/@chiwai.kiriba"
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full border border-[#E4E8E6] bg-[#F1F0F0] px-3 py-1 font-semibold text-[#36514B] transition-colors hover:bg-[#ECF4E9]"
@@ -40,12 +34,18 @@ export default function AppFooter() {
             Medium
           </a>
           <a
-            href="https://github.com/"
+            href="https://github.com/jchiwaii"
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full border border-[#E4E8E6] bg-[#F1F0F0] px-3 py-1 font-semibold text-[#36514B] transition-colors hover:bg-[#ECF4E9]"
           >
             GitHub
+          </a>
+          <a
+            href="mailto:chiwai.kiriba@gmail.com"
+            className="rounded-full border border-[#E4E8E6] bg-[#F1F0F0] px-3 py-1 font-semibold text-[#36514B] transition-colors hover:bg-[#ECF4E9]"
+          >
+            Mail
           </a>
         </div>
       </div>

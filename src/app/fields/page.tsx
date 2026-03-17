@@ -105,7 +105,8 @@ export default async function FieldsPage({
           Job Fields
         </h1>
         <p className="mt-1 max-w-2xl text-sm text-[#6E7875]">
-          Breakdown by field, qualification, and job type
+          Which fields are employers hiring in most? Here's how job demand breaks down across
+          fields, qualifications, and work types in Kenya.
         </p>
       </div>
 

@@ -60,11 +60,13 @@ export default async function IndustryPage({
     title: string;
     value: string;
     subtitle?: string;
+    desc?: string;
     tone: string;
   }[] = [
     {
       title: "Unique Industries",
       value: total.toLocaleString(),
+      desc: "Distinct industries represented across all job listings",
       tone: "text-[#1E4841] bg-[#ECF4E9] border-[#D9E2D7]",
     },
     {
@@ -94,7 +96,8 @@ export default async function IndustryPage({
           Industry
         </h1>
         <p className="mt-1 max-w-3xl text-sm text-[#6E7875]">
-          {total.toLocaleString()} unique industries in the Kenyan job market
+          Across {total.toLocaleString()} industries, see which sectors are driving the most hiring
+          activity and where the concentration of jobs actually sits.
         </p>
       </div>
 
@@ -113,6 +116,7 @@ export default async function IndustryPage({
             {card.subtitle && (
               <p className="mt-1 text-xs font-medium opacity-85">{card.subtitle}</p>
             )}
+            {card.desc && <p className="mt-2 text-xs opacity-60">{card.desc}</p>}
           </div>
         ))}
       </div>

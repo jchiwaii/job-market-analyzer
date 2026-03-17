@@ -155,12 +155,7 @@ function getInsightsData() {
       topQualByField.push(row);
     }
   }
-  // Sort by job count descending (matching topFieldsByCount order)
-  topQualByField.sort((a, b) => {
-    const aIdx = topFieldsByCount.findIndex((r) => r.field === a.field);
-    const bIdx = topFieldsByCount.findIndex((r) => r.field === b.field);
-    return aIdx - bIdx;
-  });
+  topQualByField.sort((a, b) => b.count - a.count);
 
   return {
     workTypes,
@@ -190,30 +185,37 @@ export default function InsightsPage() {
     title: string;
     value: string;
     subtitle?: string;
+    desc: string;
     tone: string;
+    highlight?: boolean;
   }[] = [
     {
       title: "Most Common Arrangement",
       value: workTypes[0]?.category ?? "-",
       subtitle: `${(workTypes[0]?.count ?? 0).toLocaleString()} listings`,
+      desc: "The employment type that appears most across all job postings",
       tone: "text-[#1E4841] bg-[#ECF4E9] border-[#D9E2D7]",
     },
     {
       title: "Top Experience Bracket",
       value: experienceBuckets[0]?.bucket ?? "-",
       subtitle: `${(experienceBuckets[0]?.count ?? 0).toLocaleString()} listings`,
+      desc: "The experience range employers request most in their listings",
       tone: "text-[#2F5F90] bg-[#EAF1F8] border-[#D6E1EE]",
     },
     {
       title: "Remote Share",
       value: `${remotePct}%`,
       subtitle: `${remoteCount.toLocaleString()} remote listings`,
+      desc: "Share of listings explicitly offering remote work arrangements",
       tone: "text-[#9F6A1F] bg-[#FBF3E8] border-[#F0DFCA]",
+      highlight: true,
     },
     {
       title: "Top Field-City Hotspot",
       value: topCombo ? `${topCombo.field} · ${topCombo.location}` : "-",
       subtitle: topCombo ? `${topCombo.count.toLocaleString()} listings` : "No hotspot data",
+      desc: "The field and location pairing with the highest job concentration outside Nairobi",
       tone: "text-[#7F4A83] bg-[#F5ECF7] border-[#E8D7EC]",
     },
   ];
@@ -225,8 +227,8 @@ export default function InsightsPage() {
           Insights
         </h1>
         <p className="mt-1 max-w-3xl text-sm text-[#6E7875]">
-          Deep-dive analysis of work arrangement, experience demand, company structure, and
-          qualification trends.
+          What does the data actually tell us? Here's a closer look at how employers hire, what
+          experience they expect, and where the real demand sits.
         </p>
       </div>
 
@@ -234,13 +236,36 @@ export default function InsightsPage() {
         {summaryCards.map((card) => (
           <div
             key={card.title}
-            className={`rounded-2xl border p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)] ${card.tone}`}
+            className={`rounded-2xl border p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)] sm:p-5 ${
+              card.highlight ? "ring-1 ring-[#E7CBA5]" : ""
+            } ${card.tone}`}
           >
-            <p className="text-xs font-semibold uppercase tracking-wide opacity-80">
-              {card.title}
-            </p>
-            <p className="mt-2 break-words text-lg font-semibold leading-snug">{card.value}</p>
-            {card.subtitle && <p className="mt-1 text-xs font-medium opacity-85">{card.subtitle}</p>}
+            <div className="flex min-h-[166px] flex-col">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wide opacity-80">
+                  {card.title}
+                </p>
+                <p
+                  className={`mt-3 break-words font-semibold leading-none ${
+                    card.highlight ? "text-[36px]" : "text-[30px]"
+                  }`}
+                >
+                  {card.value}
+                </p>
+                {card.subtitle && (
+                  <p
+                    className={`mt-2 ${
+                      card.highlight
+                        ? "inline-flex rounded-full border border-current/20 bg-white/45 px-2.5 py-1 text-xs font-semibold"
+                        : "text-sm font-medium opacity-85"
+                    }`}
+                  >
+                    {card.subtitle}
+                  </p>
+                )}
+              </div>
+              <p className="mt-auto pt-4 text-xs leading-relaxed opacity-65">{card.desc}</p>
+            </div>
           </div>
         ))}
       </div>

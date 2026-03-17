@@ -82,11 +82,13 @@ export default async function CompaniesPage({
     title: string;
     value: string;
     subtitle?: string;
+    desc?: string;
     tone: string;
   }[] = [
     {
       title: "Unique Companies",
       value: total.toLocaleString(),
+      desc: "Distinct employers with at least one active listing",
       tone: "text-[#1E4841] bg-[#ECF4E9] border-[#D9E2D7]",
     },
     {
@@ -116,7 +118,8 @@ export default async function CompaniesPage({
           Companies
         </h1>
         <p className="mt-1 max-w-3xl text-sm text-[#6E7875]">
-          {total.toLocaleString()} unique hiring companies on MyJobMag Kenya
+          Who is actually hiring? A look at {total.toLocaleString()} companies posting jobs on
+          MyJobMag Kenya — from dominant employers to those who posted just once.
         </p>
       </div>
 
@@ -135,6 +138,7 @@ export default async function CompaniesPage({
             {card.subtitle && (
               <p className="mt-1 text-xs font-medium opacity-85">{card.subtitle}</p>
             )}
+            {card.desc && <p className="mt-2 text-xs opacity-60">{card.desc}</p>}
           </div>
         ))}
       </div>
