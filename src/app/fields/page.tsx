@@ -74,14 +74,12 @@ export default async function FieldsPage({
     value: string;
     subtitle?: string;
     desc: string;
-    descSize?: string;
     tone: string;
   }[] = [
     {
       title: "Unique Job Fields",
       value: total.toLocaleString(),
-      desc: "Distinct career fields across all listings",
-      descSize: "text-sm",
+      desc: "Spans all unique career fields found across every job listing in the dataset",
       tone: "text-[#1E4841] bg-[#ECF4E9] border-[#D9E2D7]",
     },
     {
@@ -126,7 +124,7 @@ export default async function FieldsPage({
             {card.subtitle && (
               <p className="mt-1 text-xs font-medium opacity-85">{card.subtitle}</p>
             )}
-            <p className={`mt-2 opacity-60 ${card.descSize ?? "text-xs"}`}>{card.desc}</p>
+            <p className="mt-2 text-xs opacity-60">{card.desc}</p>
           </div>
         ))}
       </div>
