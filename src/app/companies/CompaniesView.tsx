@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import BarChartCard from "@/components/charts/BarChartCard";
 import Pagination from "@/components/Pagination";
+import ChartErrorBoundary from "@/components/ChartErrorBoundary";
 import type { CompanyRow } from "./page";
 
 interface Props {
@@ -41,15 +42,17 @@ export default function CompaniesView({
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <BarChartCard
-        title="Top 15 Hiring Companies"
-        data={chartData}
-        color="#2F5F90"
-        horizontal
-        maxItems={15}
-        dashboardStyle
-        dashboardVariant="focus"
-      />
+      <ChartErrorBoundary>
+        <BarChartCard
+          title="Top 15 Hiring Companies"
+          data={chartData}
+          color="#2F5F90"
+          horizontal
+          maxItems={15}
+          dashboardStyle
+          dashboardVariant="focus"
+        />
+      </ChartErrorBoundary>
 
       <div className="rounded-2xl border border-[#E4E8E6] bg-white p-4 sm:p-5">
         <div className="mb-4 flex flex-col gap-3 lg:mb-5 lg:flex-row lg:items-center lg:justify-between">

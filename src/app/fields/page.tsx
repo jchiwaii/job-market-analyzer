@@ -22,9 +22,9 @@ function getFieldsData(page: number) {
       `SELECT field as name, COUNT(*) as count
        FROM jobs WHERE field IS NOT NULL AND field <> ''
        GROUP BY field ORDER BY count DESC
-       LIMIT ${PAGE_SIZE} OFFSET ${offset}`
+       LIMIT @limit OFFSET @offset`
     )
-    .all() as { name: string; count: number }[];
+    .all({ limit: PAGE_SIZE, offset }) as { name: string; count: number }[];
 
   const top15 = db
     .prepare(
@@ -66,7 +66,7 @@ export default async function FieldsPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page: pageParam } = await searchParams;
-  const page = Math.max(1, parseInt(pageParam || "1", 10));
+  const page = Math.max(1, Math.min(parseInt(pageParam || "1", 10), 10000));
   const { fields, top15, qualifications, jobTypes, total, totalPages } = getFieldsData(page);
 
   const summaryCards: {

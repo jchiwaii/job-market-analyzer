@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import BarChartCard from "@/components/charts/BarChartCard";
 import PieChartCard from "@/components/charts/PieChartCard";
 import Pagination from "@/components/Pagination";
+import ChartErrorBoundary from "@/components/ChartErrorBoundary";
 
 interface Props {
   locations: { name: string; count: number }[];
@@ -65,23 +66,25 @@ export default function LocationsView({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <BarChartCard
-          title="Top 15 Locations (Excluding Nairobi)"
-          data={top15}
-          color="#2F5F90"
-          horizontal
-          maxItems={15}
-          dashboardStyle
-          dashboardVariant="focus"
-          className="xl:col-span-2"
-        />
-        <PieChartCard
-          title="Location Distribution (Excluding Nairobi)"
-          data={top15}
-          maxItems={10}
-        />
-      </div>
+      <ChartErrorBoundary>
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+          <BarChartCard
+            title="Top 15 Locations (Excluding Nairobi)"
+            data={top15}
+            color="#2F5F90"
+            horizontal
+            maxItems={15}
+            dashboardStyle
+            dashboardVariant="focus"
+            className="xl:col-span-2"
+          />
+          <PieChartCard
+            title="Location Distribution (Excluding Nairobi)"
+            data={top15}
+            maxItems={10}
+          />
+        </div>
+      </ChartErrorBoundary>
 
       <div className="rounded-2xl border border-[#E4E8E6] bg-white p-4 sm:p-5">
         <div className="mb-4 flex flex-col gap-3 lg:mb-5 lg:flex-row lg:items-center lg:justify-between">

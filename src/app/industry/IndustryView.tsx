@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import BarChartCard from "@/components/charts/BarChartCard";
 import PieChartCard from "@/components/charts/PieChartCard";
 import Pagination from "@/components/Pagination";
+import ChartErrorBoundary from "@/components/ChartErrorBoundary";
 
 interface Props {
   industries: { name: string; count: number }[];
@@ -39,19 +40,21 @@ export default function IndustryView({
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <BarChartCard
-          title="Top 15 Industries"
-          data={top15}
-          color="#1E4841"
-          horizontal
-          maxItems={15}
-          dashboardStyle
-          dashboardVariant="focus"
-          className="xl:col-span-2"
-        />
-        <PieChartCard title="Industry Distribution" data={top15} maxItems={8} />
-      </div>
+      <ChartErrorBoundary>
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+          <BarChartCard
+            title="Top 15 Industries"
+            data={top15}
+            color="#1E4841"
+            horizontal
+            maxItems={15}
+            dashboardStyle
+            dashboardVariant="focus"
+            className="xl:col-span-2"
+          />
+          <PieChartCard title="Industry Distribution" data={top15} maxItems={8} />
+        </div>
+      </ChartErrorBoundary>
 
       <div className="rounded-2xl border border-[#E4E8E6] bg-white p-4 sm:p-5">
         <div className="mb-4 flex flex-col gap-3 lg:mb-5 lg:flex-row lg:items-center lg:justify-between">

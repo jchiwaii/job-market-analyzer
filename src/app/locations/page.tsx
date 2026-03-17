@@ -36,9 +36,9 @@ function getLocationsData(page: number) {
       `SELECT location as name, COUNT(*) as count
        FROM jobs WHERE location IS NOT NULL AND location <> '' AND location <> 'Nairobi'
        GROUP BY location ORDER BY count DESC
-       LIMIT ${PAGE_SIZE} OFFSET ${offset}`
+       LIMIT @limit OFFSET @offset`
     )
-    .all() as { name: string; count: number }[];
+    .all({ limit: PAGE_SIZE, offset }) as { name: string; count: number }[];
 
   const top15 = db
     .prepare(
@@ -64,7 +64,7 @@ export default async function LocationsPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page: pageParam } = await searchParams;
-  const page = Math.max(1, parseInt(pageParam || "1", 10));
+  const page = Math.max(1, Math.min(parseInt(pageParam || "1", 10), 10000));
   const { locations, top15, total, totalPages, nairobiCount, totalWithLocation } =
     getLocationsData(page);
 

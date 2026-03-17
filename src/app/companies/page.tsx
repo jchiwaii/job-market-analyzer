@@ -35,9 +35,9 @@ function getCompaniesData(page: number) {
               MAX(posted_date) as lastPosted
        FROM jobs WHERE company IS NOT NULL AND company <> ''
        GROUP BY company ORDER BY count DESC
-       LIMIT ${PAGE_SIZE} OFFSET ${offset}`
+       LIMIT @limit OFFSET @offset`
     )
-    .all() as CompanyRow[];
+    .all({ limit: PAGE_SIZE, offset }) as CompanyRow[];
 
   const top15 = db
     .prepare(
@@ -73,7 +73,7 @@ export default async function CompaniesPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page: pageParam } = await searchParams;
-  const page = Math.max(1, parseInt(pageParam || "1", 10));
+  const page = Math.max(1, Math.min(parseInt(pageParam || "1", 10), 10000));
   const { companies, total, top15, totalPages, totalCompanyJobs, singleJobCompanies } = getCompaniesData(page);
 
   const avgJobsPerCompany = total > 0 ? Math.round(totalCompanyJobs / total) : 0;

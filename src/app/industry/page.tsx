@@ -22,9 +22,9 @@ function getIndustryData(page: number) {
       `SELECT industry as name, COUNT(*) as count
        FROM jobs WHERE industry IS NOT NULL AND industry <> ''
        GROUP BY industry ORDER BY count DESC
-       LIMIT ${PAGE_SIZE} OFFSET ${offset}`
+       LIMIT @limit OFFSET @offset`
     )
-    .all() as { name: string; count: number }[];
+    .all({ limit: PAGE_SIZE, offset }) as { name: string; count: number }[];
 
   const top15 = db
     .prepare(
@@ -49,7 +49,7 @@ export default async function IndustryPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page: pageParam } = await searchParams;
-  const page = Math.max(1, parseInt(pageParam || "1", 10));
+  const page = Math.max(1, Math.min(parseInt(pageParam || "1", 10), 10000));
   const { industries, top15, total, totalPages, totalIndustryJobs } = getIndustryData(page);
 
   const leadingPct = totalIndustryJobs > 0 && top15[0] ? Math.round((top15[0].count / totalIndustryJobs) * 100) : 0;

@@ -33,9 +33,9 @@ export default function RootLayout({
             <div className="mx-auto max-w-7xl px-3 py-4 pt-14 sm:px-4 sm:py-6 sm:pt-16 lg:px-8 lg:pt-6">
               <div className="mb-5 flex justify-end sm:mb-6">
                 <UserProfile
-                  name="John Chiwai"
-                  imageUrl="https://media.licdn.com/dms/image/v2/D4D03AQFw6mJE1jdVgQ/profile-displayphoto-shrink_800_800/B4DZS2CuHvHkAg-/0/1738220955588?e=1775088000&v=beta&t=BVvSXxGyL5sLKVy09ULJ7XPge1KSi_YVjfT8PsxVTSs"
-                  profileUrl="https://www.linkedin.com/in/john-chiwai/"
+                  name={process.env.NEXT_PUBLIC_PROFILE_NAME ?? "John Chiwai"}
+                  imageUrl={process.env.NEXT_PUBLIC_PROFILE_IMAGE_URL ?? "https://media.licdn.com/dms/image/v2/D4D03AQFw6mJE1jdVgQ/profile-displayphoto-shrink_800_800/B4DZS2CuHvHkAg-/0/1738220955588?e=1775088000&v=beta&t=BVvSXxGyL5sLKVy09ULJ7XPge1KSi_YVjfT8PsxVTSs"}
+                  profileUrl={process.env.NEXT_PUBLIC_PROFILE_URL ?? "https://www.linkedin.com/in/john-chiwai/"}
                 />
               </div>
               {children}

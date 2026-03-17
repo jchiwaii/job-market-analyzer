@@ -34,7 +34,7 @@ export default function Pagination({
   } else if (page <= 4) {
     for (let i = 1; i <= 7; i++) pages.push(i);
   } else if (page >= totalPages - 3) {
-    for (let i = totalPages - 6; i <= totalPages; i++) pages.push(i);
+    for (let i = Math.max(1, totalPages - 6); i <= totalPages; i++) pages.push(i);
   } else {
     for (let i = page - 3; i <= page + 3; i++) pages.push(i);
   }
