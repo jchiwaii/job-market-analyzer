@@ -130,14 +130,6 @@ export default function InsightsView({
       </section>
 
       <section className="space-y-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#58706A]">Chart Layer</p>
-          <h2 className="mt-1 text-[18px] font-semibold text-[#24302C]">Market Structure</h2>
-          <p className="mt-1 text-sm text-[#6B726F]">
-            Responsive charts for arrangement, experience, concentration, and field seniority.
-          </p>
-        </div>
-
         <ChartErrorBoundary>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <BarChartCard
@@ -164,6 +156,7 @@ export default function InsightsView({
               maxItems={10}
               dashboardStyle
               className="min-w-0"
+              note="Most companies post only a handful of jobs, while a small number of large employers dominate listing volume. This shows how unevenly hiring activity is distributed across the market."
             />
             <BarChartCard
               title="Average Years Experience by Field"

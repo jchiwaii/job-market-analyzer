@@ -54,7 +54,15 @@ export default function FieldsView({
             dashboardVariant="focus"
             className="xl:col-span-2"
           />
-          <PieChartCard title="Field Distribution" data={top15} />
+          <PieChartCard
+            title="Field Distribution"
+            data={top15}
+            note="A few fields are doing most of the heavy lifting. If you're in Sales, Finance, or IT — there's a lot of competition, but also a lot of opportunity."
+            miniTrendData={getMiniTrendData(top15).map((field) => ({
+              name: field.name,
+              value: field.count,
+            }))}
+          />
           <BarChartCard
             title="By Qualification"
             data={qualifications}
@@ -192,6 +200,19 @@ function getFieldAbbr(name: string) {
   if (words.length === 0) return "F";
   if (words.length === 1) return words[0].slice(0, 1).toUpperCase();
   return `${words[0][0] ?? ""}${words[1][0] ?? ""}`.toUpperCase();
+}
+
+function getMiniTrendData(top15: { name: string; count: number }[]) {
+  const firstSeven = top15.slice(0, 7);
+  const ictCandidate = top15.find((field) => {
+    const name = field.name.toLowerCase();
+    return /\bict\b/.test(name) || name.includes("computer") || name.includes("information technology");
+  });
+
+  if (!ictCandidate) return firstSeven;
+  if (firstSeven.some((field) => field.name === ictCandidate.name)) return firstSeven;
+
+  return [...firstSeven.slice(0, 6), ictCandidate];
 }
 
 function SearchIcon() {

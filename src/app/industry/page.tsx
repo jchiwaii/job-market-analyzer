@@ -53,8 +53,6 @@ export default async function IndustryPage({
   const { industries, top15, total, totalPages, totalIndustryJobs } = getIndustryData(page);
 
   const leadingPct = totalIndustryJobs > 0 && top15[0] ? Math.round((top15[0].count / totalIndustryJobs) * 100) : 0;
-  const top3Sum = top15.slice(0, 3).reduce((s, r) => s + r.count, 0);
-  const top3Pct = totalIndustryJobs > 0 ? Math.round((top3Sum / totalIndustryJobs) * 100) : 0;
   const avgJobsPerIndustry = total > 0 ? Math.round(totalIndustryJobs / total) : 0;
   const summaryCards: {
     title: string;
@@ -73,19 +71,15 @@ export default async function IndustryPage({
       title: "Leading Industry",
       value: top15[0]?.name ?? "—",
       subtitle: `${leadingPct}% of industry-tagged jobs`,
+      desc: "The single industry with the highest number of job listings",
       tone: "text-[#2F5F90] bg-[#EAF1F8] border-[#D6E1EE]",
-    },
-    {
-      title: "Top 3 Market Share",
-      value: `${top3Pct}%`,
-      subtitle: "of jobs concentrated in top 3 industries",
-      tone: "text-[#9F6A1F] bg-[#FBF3E8] border-[#F0DFCA]",
     },
     {
       title: "Avg Jobs per Industry",
       value: avgJobsPerIndustry.toLocaleString(),
       subtitle: "across all industries",
-      tone: "text-[#7F4A83] bg-[#F5ECF7] border-[#E8D7EC]",
+      desc: "Average listing count if jobs were evenly spread across every industry",
+      tone: "text-[#9F6A1F] bg-[#FBF3E8] border-[#F0DFCA]",
     },
   ];
 
@@ -101,7 +95,7 @@ export default async function IndustryPage({
         </p>
       </div>
 
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         {summaryCards.map((card) => (
           <div
             key={card.title}

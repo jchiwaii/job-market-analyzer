@@ -52,7 +52,36 @@ export default function IndustryView({
             dashboardVariant="focus"
             className="xl:col-span-2"
           />
-          <PieChartCard title="Industry Distribution" data={top15} maxItems={8} />
+          <div className="flex flex-col gap-4">
+            <PieChartCard title="Industry Distribution" data={top15} maxItems={8} />
+            <div className="rounded-2xl border border-[#E4E8E6] bg-white p-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#6B726F]">
+                Top 3 by Volume
+              </p>
+              <div className="space-y-3">
+                {top15.slice(0, 3).map((ind, i) => {
+                  const top15Total = top15.reduce((s, r) => s + r.count, 0);
+                  const pct = top15Total > 0 ? ((ind.count / top15Total) * 100).toFixed(1) : "0.0";
+                  return (
+                    <div key={ind.name} className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#BBF49C] text-[10px] font-bold text-[#1E4841]">
+                          {i + 1}
+                        </span>
+                        <span className="truncate text-sm font-medium text-[#24302C]">
+                          {ind.name}
+                        </span>
+                      </div>
+                      <span className="shrink-0 text-xs font-semibold text-[#1E4841]">{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="mt-4 text-[11px] leading-relaxed text-[#9AA6A2]">
+                Percentages are relative to the top 15 industries shown in the chart.
+              </p>
+            </div>
+          </div>
         </div>
       </ChartErrorBoundary>
 
