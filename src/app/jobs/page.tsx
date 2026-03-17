@@ -86,20 +86,28 @@ async function getJobsData(searchParams: { [key: string]: string | undefined }) 
   };
 }
 
-/** "Administration / Secretarial" → "Administration", deduped + sorted */
+/** "Administration / Secretarial", "Administration, NGO" → "Administration", deduped + sorted */
 function groupFields(fields: string[]): string[] {
   const seen = new Set<string>();
   for (const f of fields) {
-    seen.add(f.split(/\s*\/\s*/)[0].trim());
+    const group = f.split(/\s*[\/,]\s*/)[0].trim();
+    if (group) seen.add(group);
   }
   return Array.from(seen).sort((a, b) => a.localeCompare(b));
 }
 
-/** "Baringo County" → "Baringo", "Nairobi" → "Nairobi", deduped + sorted */
+// First words that are not standalone county names — include the second word too
+const LOCATION_PREFIXES = new Set(["West", "North", "South", "East", "Trans", "Homa", "Taita", "Tharaka"]);
+
+/** "Mombasa, Coast", "Mombasa," → "Mombasa", "West Pokot Town" → "West Pokot", deduped + sorted */
 function groupLocations(locations: string[]): string[] {
   const seen = new Set<string>();
   for (const l of locations) {
-    seen.add(l.split(/\s+/)[0].trim());
+    const words = l.split(/\s+/);
+    const first = words[0].replace(/[^a-zA-Z0-9]/g, "").trim();
+    const second = words[1]?.replace(/[^a-zA-Z0-9]/g, "").trim();
+    const group = LOCATION_PREFIXES.has(first) && second ? `${first} ${second}` : first;
+    if (group) seen.add(group);
   }
   return Array.from(seen).sort((a, b) => a.localeCompare(b));
 }

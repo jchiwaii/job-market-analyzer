@@ -37,6 +37,25 @@ export default function InsightsView({
 
   const workTypeData = workTypes.map((row) => ({ name: row.category, count: row.count }));
   const expBucketData = experienceBuckets.map((row) => ({ name: row.bucket, count: row.count }));
+
+  // ── Insight card stats ──────────────────────────────────────────────────
+  const totalWorkTypeCount = workTypes.reduce((s, r) => s + r.count, 0);
+  const topWork = workTypes[0];
+  const topWorkPct =
+    totalWorkTypeCount > 0 ? Math.round(((topWork?.count ?? 0) / totalWorkTypeCount) * 100) : 0;
+  const remoteRow = workTypes.find((w) => w.category === "Remote");
+  const remoteWorkPct =
+    totalWorkTypeCount > 0
+      ? Math.round(((remoteRow?.count ?? 0) / totalWorkTypeCount) * 100)
+      : 0;
+
+  const totalExpCount = experienceBuckets.reduce((s, r) => s + r.count, 0);
+  const topBucket = experienceBuckets[0];
+  const topBucketPct =
+    totalExpCount > 0 ? Math.round(((topBucket?.count ?? 0) / totalExpCount) * 100) : 0;
+  const entryBucket = experienceBuckets.find((b) => b.bucket === "0–1 year");
+  const entryPct =
+    totalExpCount > 0 ? Math.round(((entryBucket?.count ?? 0) / totalExpCount) * 100) : 0;
   const companyConcentrationData = companyConcentration.map((row) => ({
     name: row.bucket,
     count: row.companies,
@@ -82,24 +101,24 @@ export default function InsightsView({
             </h2>
           </div>
           <span className="inline-flex w-fit items-center rounded-full border border-[#C8DCD2] bg-[#ECF4E9] px-3 py-1 text-[11px] font-semibold text-[#1E4841]">
-            Text placeholders ready
+            Data-driven
           </span>
         </div>
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
           <InsightNarrativeCard
-            step="Important Insight 01"
-            title="Add your first key market takeaway"
-            beforeText="Use this space to explain what the audience should notice before they look at the illustration."
-            afterText="Add the important insight right after the illustration to explain why this trend matters."
-            illustration={<DemandPulseIllustration />}
+            step="Market Signal 01"
+            title={`${topWork?.category ?? "Full Time"} dominates Kenya's job listings`}
+            beforeText={`When broken down by work arrangement, the shape of Kenya's job market becomes stark. Employers are not experimenting with flexibility at scale — listings cluster heavily under one traditional model, leaving little room for hybrid or remote-first hiring.`}
+            afterText={`${topWork?.category ?? "Full Time"} roles account for ${topWorkPct}% of all arrangement-tagged listings. Remote work sits at just ${remoteWorkPct}%, confirming that flexible employment is still a niche offering rather than a mainstream option in Kenya's formal job market.`}
+            illustration={<WorkTypeIllustration workTypes={workTypes} />}
           />
           <InsightNarrativeCard
-            step="Important Insight 02"
-            title="Add your second key market takeaway"
-            beforeText="Use this setup text to frame the context, assumption, or trend direction before the visual cue."
-            afterText="Add the important insight after the visual to interpret the signal and recommend an action."
-            illustration={<MomentumFlowIllustration />}
+            step="Market Signal 02"
+            title={`${topBucket?.bucket ?? "3–5 years"} is the market's experience sweet spot`}
+            beforeText={`Employers aren't hiring fresh graduates at scale, nor are they overwhelmingly seeking senior experts. The data reveals a clear concentration around one experience band — the tier that offers immediate impact without senior-level costs.`}
+            afterText={`${topBucketPct}% of all experience-tagged listings target the ${topBucket?.bucket ?? "3–5 years"} bracket, making it the single largest demand segment. Entry-level roles (0–1 year) account for just ${entryPct}%, confirming the market skews firmly toward experienced mid-career professionals.`}
+            illustration={<ExperienceDemandIllustration experienceBuckets={experienceBuckets} />}
           />
         </div>
       </section>
@@ -362,35 +381,132 @@ function InsightNarrativeCard({
   );
 }
 
-function DemandPulseIllustration() {
+const WORK_TYPE_COLORS: Record<string, string> = {
+  "Full Time": "#1E4841",
+  "Part Time": "#2F5F90",
+  Contract: "#9F6A1F",
+  Remote: "#7F4A83",
+  Hybrid: "#58706A",
+  Other: "#A0A8A4",
+};
+
+function WorkTypeIllustration({ workTypes }: { workTypes: WorkTypeRow[] }) {
+  const total = workTypes.reduce((s, r) => s + r.count, 0);
+  const top4 = workTypes.slice(0, 4);
+  const leftPad = 66;
+  const rightPad = 34;
+  const barAreaW = 280 - leftPad - rightPad;
+  const barH = 13;
+  const rowH = 26;
+  const topPad = 8;
+
   return (
-    <svg viewBox="0 0 280 120" className="h-[120px] w-full" fill="none" aria-hidden>
-      <rect x="0.5" y="0.5" width="279" height="119" rx="12" fill="#F8FBF7" stroke="#E4E8E6" />
-      <path d="M24 90H256" stroke="#D3DDD8" strokeWidth="2" />
-      <path d="M24 72L72 60L120 68L168 42L216 50L256 28" stroke="#1E4841" strokeWidth="3" />
-      <circle cx="168" cy="42" r="5" fill="#1E4841" />
-      <circle cx="168" cy="42" r="10" stroke="#BBF49C" strokeWidth="4" />
-      <rect x="180" y="18" width="76" height="28" rx="8" fill="#1E4841" />
-      <text x="218" y="36" textAnchor="middle" fontSize="10" fontWeight="700" fill="#ECF4E9">
-        Demand Spike
-      </text>
+    <svg viewBox="0 0 280 112" className="h-[112px] w-full" fill="none" aria-hidden>
+      {top4.map((row, i) => {
+        const pct = total > 0 ? Math.round((row.count / total) * 100) : 0;
+        const barW = total > 0 ? Math.max(4, (row.count / total) * barAreaW) : 4;
+        const y = topPad + i * rowH;
+        const color = WORK_TYPE_COLORS[row.category] ?? "#6B726F";
+        const label = row.category.length > 10 ? row.category.slice(0, 10) : row.category;
+        return (
+          <g key={row.category}>
+            <text
+              x={leftPad - 6}
+              y={y + barH - 1}
+              textAnchor="end"
+              fontSize="9"
+              fill="#6B726F"
+              fontWeight="600"
+            >
+              {label}
+            </text>
+            <rect x={leftPad} y={y} width={barAreaW} height={barH} rx={4} fill="#E4E8E6" />
+            <rect x={leftPad} y={y} width={barW} height={barH} rx={4} fill={color} />
+            <text
+              x={leftPad + barAreaW + 5}
+              y={y + barH - 1}
+              textAnchor="start"
+              fontSize="9"
+              fill="#24302C"
+              fontWeight="700"
+            >
+              {pct}%
+            </text>
+          </g>
+        );
+      })}
     </svg>
   );
 }
 
-function MomentumFlowIllustration() {
+function ExperienceDemandIllustration({
+  experienceBuckets,
+}: {
+  experienceBuckets: ExperienceBucketRow[];
+}) {
+  if (experienceBuckets.length === 0) return null;
+
+  const maxCount = Math.max(...experienceBuckets.map((b) => b.count), 1);
+  const chartH = 72;
+  const topPad = 8;
+  const leftPad = 10;
+  const rightPad = 10;
+  const availW = 280 - leftPad - rightPad;
+  const n = experienceBuckets.length;
+  const gapW = 7;
+  const barW = Math.floor((availW - gapW * (n - 1)) / n);
+  const peakBucket = experienceBuckets[0];
+
+  const peakIdx = experienceBuckets.findIndex((b) => b.bucket === peakBucket.bucket);
+  const peakH = (peakBucket.count / maxCount) * chartH;
+  const peakX = leftPad + peakIdx * (barW + gapW) + barW / 2;
+  const peakY = topPad + chartH - peakH;
+
   return (
-    <svg viewBox="0 0 280 120" className="h-[120px] w-full" fill="none" aria-hidden>
-      <rect x="0.5" y="0.5" width="279" height="119" rx="12" fill="#F8FBF7" stroke="#E4E8E6" />
-      <rect x="24" y="26" width="58" height="68" rx="10" fill="#EAF1F8" />
-      <rect x="96" y="40" width="58" height="54" rx="10" fill="#ECF4E9" />
-      <rect x="168" y="18" width="58" height="76" rx="10" fill="#FBF3E8" />
-      <path d="M86 60H92" stroke="#6B726F" strokeWidth="2" />
-      <path d="M158 56H164" stroke="#6B726F" strokeWidth="2" />
-      <path d="M228 32H252" stroke="#1E4841" strokeWidth="3" />
-      <path d="M246 26L252 32L246 38" stroke="#1E4841" strokeWidth="3" />
-      <text x="239" y="54" textAnchor="middle" fontSize="10" fontWeight="700" fill="#1E4841">
-        Momentum
+    <svg viewBox="0 0 280 112" className="h-[112px] w-full" fill="none" aria-hidden>
+      <line
+        x1={leftPad}
+        y1={topPad + chartH}
+        x2={280 - rightPad}
+        y2={topPad + chartH}
+        stroke="#D3DDD8"
+        strokeWidth="1.5"
+      />
+      {experienceBuckets.map((b, i) => {
+        const h = Math.max(4, (b.count / maxCount) * chartH);
+        const x = leftPad + i * (barW + gapW);
+        const y = topPad + chartH - h;
+        const isPeak = b.bucket === peakBucket.bucket;
+        const label = b.bucket
+          .replace(" years", "")
+          .replace(" year", "")
+          .replace("–", "-");
+        return (
+          <g key={b.bucket}>
+            <rect x={x} y={y} width={barW} height={h} rx={3} fill={isPeak ? "#1E4841" : "#BBF49C"} />
+            <text
+              x={x + barW / 2}
+              y={topPad + chartH + 15}
+              textAnchor="middle"
+              fontSize="7.5"
+              fill={isPeak ? "#1E4841" : "#6B726F"}
+              fontWeight={isPeak ? "700" : "500"}
+            >
+              {label}
+            </text>
+          </g>
+        );
+      })}
+      <rect x={peakX - 22} y={peakY - 22} width={44} height={17} rx={5} fill="#1E4841" />
+      <text
+        x={peakX}
+        y={peakY - 9}
+        textAnchor="middle"
+        fontSize="8.5"
+        fontWeight="700"
+        fill="#BBF49C"
+      >
+        Peak
       </text>
     </svg>
   );

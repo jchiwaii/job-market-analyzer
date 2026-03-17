@@ -273,12 +273,17 @@ export default function JobsTable({
 
 function deriveFieldGroup(value?: string): string {
   if (!value) return "";
-  return value.split(/\s*\/\s*/)[0].trim();
+  return value.split(/\s*[\/,]\s*/)[0].trim();
 }
+
+const LOCATION_PREFIXES = new Set(["West", "North", "South", "East", "Trans", "Homa", "Taita", "Tharaka"]);
 
 function deriveLocationGroup(value?: string): string {
   if (!value) return "";
-  return value.split(/\s+/)[0].trim();
+  const words = value.split(/\s+/);
+  const first = words[0].replace(/[^a-zA-Z0-9]/g, "").trim();
+  const second = words[1]?.replace(/[^a-zA-Z0-9]/g, "").trim();
+  return LOCATION_PREFIXES.has(first) && second ? `${first} ${second}` : first;
 }
 
 function SearchIcon() {
