@@ -1,54 +1,42 @@
-import { getDb } from "@/lib/db";
+import { queryOne, queryAll } from "@/lib/db";
 import FieldsView from "./FieldsView";
 
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 10;
 
-function getFieldsData(page: number) {
-  const db = getDb();
+async function getFieldsData(page: number) {
   const offset = (page - 1) * PAGE_SIZE;
 
-  const total = (
-    db
-      .prepare(
-        "SELECT COUNT(DISTINCT field) as c FROM jobs WHERE field IS NOT NULL AND field <> ''"
-      )
-      .get() as { c: number }
-  ).c;
-
-  const fields = db
-    .prepare(
+  const [totalRow, fields, top15, qualifications, jobTypes] = await Promise.all([
+    queryOne<{ c: number }>(
+      "SELECT COUNT(DISTINCT field) as c FROM jobs WHERE field IS NOT NULL AND field <> ''"
+    ),
+    queryAll<{ name: string; count: number }>(
       `SELECT field as name, COUNT(*) as count
        FROM jobs WHERE field IS NOT NULL AND field <> ''
        GROUP BY field ORDER BY count DESC
-       LIMIT @limit OFFSET @offset`
-    )
-    .all({ limit: PAGE_SIZE, offset }) as { name: string; count: number }[];
-
-  const top15 = db
-    .prepare(
+       LIMIT :limit OFFSET :offset`,
+      { limit: PAGE_SIZE, offset }
+    ),
+    queryAll<{ name: string; count: number }>(
       `SELECT field as name, COUNT(*) as count
        FROM jobs WHERE field IS NOT NULL AND field <> ''
        GROUP BY field ORDER BY count DESC LIMIT 15`
-    )
-    .all() as { name: string; count: number }[];
-
-  const qualifications = db
-    .prepare(
+    ),
+    queryAll<{ name: string; count: number }>(
       `SELECT qualification as name, COUNT(*) as count
        FROM jobs WHERE qualification IS NOT NULL AND qualification <> ''
        GROUP BY qualification ORDER BY count DESC LIMIT 10`
-    )
-    .all() as { name: string; count: number }[];
-
-  const jobTypes = db
-    .prepare(
+    ),
+    queryAll<{ name: string; count: number }>(
       `SELECT job_type as name, COUNT(*) as count
        FROM jobs WHERE job_type IS NOT NULL AND job_type <> ''
        GROUP BY job_type ORDER BY count DESC LIMIT 10`
-    )
-    .all() as { name: string; count: number }[];
+    ),
+  ]);
+
+  const total = totalRow?.c ?? 0;
 
   return {
     fields,
@@ -67,13 +55,15 @@ export default async function FieldsPage({
 }) {
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, Math.min(parseInt(pageParam || "1", 10), 10000));
-  const { fields, top15, qualifications, jobTypes, total, totalPages } = getFieldsData(page);
+  const { fields, top15, qualifications, jobTypes, total, totalPages } =
+    await getFieldsData(page);
 
   const summaryCards: {
     title: string;
     value: string;
     subtitle?: string;
     desc: string;
+    descSize?: string;
     tone: string;
   }[] = [
     {
@@ -105,7 +95,7 @@ export default async function FieldsPage({
           Job Fields
         </h1>
         <p className="mt-1 max-w-2xl text-sm text-[#6E7875]">
-          Which fields are employers hiring in most? Here's how job demand breaks down across
+          Which fields are employers hiring in most? Here&apos;s how job demand breaks down across
           fields, qualifications, and work types in Kenya.
         </p>
       </div>
@@ -125,7 +115,7 @@ export default async function FieldsPage({
             {card.subtitle && (
               <p className="mt-1 text-xs font-medium opacity-85">{card.subtitle}</p>
             )}
-            <p className="mt-2 text-xs opacity-60">{card.desc}</p>
+            <p className={`mt-2 opacity-60 ${card.descSize ?? "text-xs"}`}>{card.desc}</p>
           </div>
         ))}
       </div>

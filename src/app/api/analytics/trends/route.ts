@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { queryAll } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-export function GET(req: NextRequest) {
-  const db = getDb();
+export async function GET(req: NextRequest) {
   const groupBy = req.nextUrl.searchParams.get("group") || "day";
   const field = req.nextUrl.searchParams.get("field");
 
@@ -24,27 +23,26 @@ export function GET(req: NextRequest) {
   const params: Record<string, string> = {};
 
   if (field) {
-    conditions.push("field LIKE @field");
+    conditions.push("field LIKE :field");
     params.field = `%${field}%`;
   }
 
   const where = `WHERE ${conditions.join(" AND ")}`;
 
-  const trends = db
-    .prepare(
+  const [trends, fieldBreakdown] = await Promise.all([
+    queryAll<{ period: string; count: number }>(
       `SELECT ${dateExpr} as period, COUNT(*) as count
        FROM jobs ${where}
-       GROUP BY period ORDER BY period ASC`
-    )
-    .all(params) as { period: string; count: number }[];
-
-  const fieldBreakdown = db
-    .prepare(
+       GROUP BY period ORDER BY period ASC`,
+      params
+    ),
+    queryAll<{ period: string; field: string; count: number }>(
       `SELECT ${dateExpr} as period, field, COUNT(*) as count
        FROM jobs ${where} AND field IS NOT NULL
-       GROUP BY period, field ORDER BY period ASC`
-    )
-    .all(params) as { period: string; field: string; count: number }[];
+       GROUP BY period, field ORDER BY period ASC`,
+      params
+    ),
+  ]);
 
   return NextResponse.json({ trends, fieldBreakdown });
 }

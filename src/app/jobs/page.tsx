@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { queryOne, queryAll } from "@/lib/db";
 import JobsTable from "./JobsTable";
 
 export const dynamic = "force-dynamic";
@@ -21,8 +21,6 @@ interface PageProps {
 }
 
 async function getJobsData(searchParams: { [key: string]: string | undefined }) {
-  const db = getDb();
-
   const page = Math.max(1, parseInt(searchParams.page || "1", 10));
   const limit = 20;
   const offset = (page - 1) * limit;
@@ -32,49 +30,41 @@ async function getJobsData(searchParams: { [key: string]: string | undefined }) 
   const q = searchParams.q;
 
   const conditions: string[] = [];
-  const params: Record<string, unknown> = {};
+  const params: Record<string, string> = {};
 
   if (field) {
-    conditions.push("field LIKE @field");
+    conditions.push("field LIKE :field");
     params.field = `%${field}%`;
   }
   if (location) {
-    conditions.push("location LIKE @location");
+    conditions.push("location LIKE :location");
     params.location = `%${location}%`;
   }
   if (q) {
-    conditions.push("(title LIKE @q OR company LIKE @q)");
+    conditions.push("(title LIKE :q OR company LIKE :q)");
     params.q = `%${q}%`;
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
-  const total = (
-    db.prepare(`SELECT COUNT(*) as c FROM jobs ${where}`).get(params) as {
-      c: number;
-    }
-  ).c;
-
-  const jobs = db
-    .prepare(
+  const [totalRow, jobs, allFields, allLocations] = await Promise.all([
+    queryOne<{ c: number }>(`SELECT COUNT(*) as c FROM jobs ${where}`, params),
+    queryAll<JobItem>(
       `SELECT id, title, company, field, location, job_type, qualification, experience, posted_date, url
        FROM jobs ${where}
        ORDER BY posted_date DESC, id DESC
-       LIMIT @limit OFFSET @offset`
-    )
-    .all({ ...params, limit, offset }) as JobItem[];
-
-  const allFields = db
-    .prepare(
+       LIMIT :limit OFFSET :offset`,
+      { ...params, limit, offset }
+    ),
+    queryAll<{ field: string }>(
       "SELECT DISTINCT field FROM jobs WHERE field IS NOT NULL ORDER BY field"
-    )
-    .all() as { field: string }[];
-
-  const allLocations = db
-    .prepare(
+    ),
+    queryAll<{ location: string }>(
       "SELECT DISTINCT location FROM jobs WHERE location IS NOT NULL ORDER BY location"
-    )
-    .all() as { location: string }[];
+    ),
+  ]);
+
+  const total = totalRow?.c ?? 0;
 
   return {
     jobs,
@@ -112,26 +102,34 @@ function groupLocations(locations: string[]): string[] {
   return Array.from(seen).sort((a, b) => a.localeCompare(b));
 }
 
-function getGlobalStats() {
-  const db = getDb();
-  const totalAll = (db.prepare("SELECT COUNT(*) as c FROM jobs").get() as { c: number }).c;
-  const uniqueCompanies = (
-    db.prepare("SELECT COUNT(DISTINCT company) as c FROM jobs WHERE company IS NOT NULL AND company <> ''").get() as { c: number }
-  ).c;
-  const uniqueLocations = (
-    db.prepare("SELECT COUNT(DISTINCT location) as c FROM jobs WHERE location IS NOT NULL AND location <> ''").get() as { c: number }
-  ).c;
-  const withDates = (
-    db.prepare("SELECT COUNT(*) as c FROM jobs WHERE posted_date IS NOT NULL").get() as { c: number }
-  ).c;
-  return { totalAll, uniqueCompanies, uniqueLocations, withDates };
+async function getGlobalStats() {
+  const [totalAllRow, uniqueCompaniesRow, uniqueLocationsRow, withDatesRow] = await Promise.all([
+    queryOne<{ c: number }>("SELECT COUNT(*) as c FROM jobs"),
+    queryOne<{ c: number }>(
+      "SELECT COUNT(DISTINCT company) as c FROM jobs WHERE company IS NOT NULL AND company <> ''"
+    ),
+    queryOne<{ c: number }>(
+      "SELECT COUNT(DISTINCT location) as c FROM jobs WHERE location IS NOT NULL AND location <> ''"
+    ),
+    queryOne<{ c: number }>(
+      "SELECT COUNT(*) as c FROM jobs WHERE posted_date IS NOT NULL"
+    ),
+  ]);
+
+  return {
+    totalAll: totalAllRow?.c ?? 0,
+    uniqueCompanies: uniqueCompaniesRow?.c ?? 0,
+    uniqueLocations: uniqueLocationsRow?.c ?? 0,
+    withDates: withDatesRow?.c ?? 0,
+  };
 }
 
 export default async function JobsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
-  const [data, global] = await Promise.all([getJobsData(sp), Promise.resolve(getGlobalStats())]);
+  const [data, global] = await Promise.all([getJobsData(sp), getGlobalStats()]);
   const activeFilterCount = [sp.q, sp.field, sp.location].filter(Boolean).length;
-  const withDatesPct = global.totalAll > 0 ? Math.round((global.withDates / global.totalAll) * 100) : 0;
+  const withDatesPct =
+    global.totalAll > 0 ? Math.round((global.withDates / global.totalAll) * 100) : 0;
   const summaryCards: {
     title: string;
     value: string;
@@ -147,7 +145,8 @@ export default async function JobsPage({ searchParams }: PageProps) {
     {
       title: "Filtered Results",
       value: data.total.toLocaleString(),
-      subtitle: activeFilterCount > 0 ? `${activeFilterCount} active filters` : "no active filters",
+      subtitle:
+        activeFilterCount > 0 ? `${activeFilterCount} active filters` : "no active filters",
       tone: "text-[#2F5F90] bg-[#EAF1F8] border-[#D6E1EE]",
     },
     {
@@ -186,7 +185,9 @@ export default async function JobsPage({ searchParams }: PageProps) {
               {card.title}
             </p>
             <p className="mt-2 break-words text-lg font-semibold leading-snug">{card.value}</p>
-            {card.subtitle && <p className="mt-1 text-xs font-medium opacity-85">{card.subtitle}</p>}
+            {card.subtitle && (
+              <p className="mt-1 text-xs font-medium opacity-85">{card.subtitle}</p>
+            )}
           </div>
         ))}
       </div>

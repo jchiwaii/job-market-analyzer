@@ -1,37 +1,33 @@
-import { getDb } from "@/lib/db";
+import { queryOne, queryAll } from "@/lib/db";
 import TrendsCharts from "./TrendsCharts";
 
 export const dynamic = "force-dynamic";
 
-function getTrendsData() {
-  const db = getDb();
-
-  const totalJobs = (
-    db.prepare("SELECT COUNT(*) as c FROM jobs").get() as { c: number }
-  ).c;
-
-  const jobsWithDates = (
-    db
-      .prepare("SELECT COUNT(*) as c FROM jobs WHERE posted_date IS NOT NULL")
-      .get() as { c: number }
-  ).c;
-
-  const monthly = db
-    .prepare(
+async function getTrendsData() {
+  const [totalJobsRow, jobsWithDatesRow, monthly] = await Promise.all([
+    queryOne<{ c: number }>("SELECT COUNT(*) as c FROM jobs"),
+    queryOne<{ c: number }>(
+      "SELECT COUNT(*) as c FROM jobs WHERE posted_date IS NOT NULL"
+    ),
+    queryAll<{ period: string; count: number }>(
       `SELECT strftime('%Y-%m', posted_date) as period, COUNT(*) as count
        FROM jobs
        WHERE posted_date IS NOT NULL
          AND strftime('%Y-%m', posted_date) >= '2026-01'
        GROUP BY period
        ORDER BY period ASC`
-    )
-    .all() as { period: string; count: number }[];
+    ),
+  ]);
 
-  return { totalJobs, jobsWithDates, monthly };
+  return {
+    totalJobs: totalJobsRow?.c ?? 0,
+    jobsWithDates: jobsWithDatesRow?.c ?? 0,
+    monthly,
+  };
 }
 
-export default function TrendsPage() {
-  const { totalJobs, jobsWithDates, monthly } = getTrendsData();
+export default async function TrendsPage() {
+  const { totalJobs, jobsWithDates, monthly } = await getTrendsData();
   const withoutDates = Math.max(totalJobs - jobsWithDates, 0);
   const pct = totalJobs > 0 ? ((withoutDates / totalJobs) * 100).toFixed(1) : "0.0";
   const withDatesPct =

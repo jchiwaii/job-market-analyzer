@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  serverExternalPackages: ["better-sqlite3"],
   images: {
     remotePatterns: [
       {
@@ -10,9 +9,6 @@ const nextConfig: NextConfig = {
         hostname: "media.licdn.com",
       },
     ],
-  },
-  outputFileTracingIncludes: {
-    "/**": ["./data/jobs.db"],
   },
 };
 

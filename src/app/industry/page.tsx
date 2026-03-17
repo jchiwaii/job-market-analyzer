@@ -1,46 +1,44 @@
-import { getDb } from "@/lib/db";
+import { queryOne, queryAll } from "@/lib/db";
 import IndustryView from "./IndustryView";
 
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 10;
 
-function getIndustryData(page: number) {
-  const db = getDb();
+async function getIndustryData(page: number) {
   const offset = (page - 1) * PAGE_SIZE;
 
-  const total = (
-    db
-      .prepare(
-        "SELECT COUNT(DISTINCT industry) as c FROM jobs WHERE industry IS NOT NULL AND industry <> ''"
-      )
-      .get() as { c: number }
-  ).c;
-
-  const industries = db
-    .prepare(
+  const [totalRow, industries, top15, totalIndustryJobsRow] = await Promise.all([
+    queryOne<{ c: number }>(
+      "SELECT COUNT(DISTINCT industry) as c FROM jobs WHERE industry IS NOT NULL AND industry <> ''"
+    ),
+    queryAll<{ name: string; count: number }>(
       `SELECT industry as name, COUNT(*) as count
        FROM jobs WHERE industry IS NOT NULL AND industry <> ''
        GROUP BY industry ORDER BY count DESC
-       LIMIT @limit OFFSET @offset`
-    )
-    .all({ limit: PAGE_SIZE, offset }) as { name: string; count: number }[];
-
-  const top15 = db
-    .prepare(
+       LIMIT :limit OFFSET :offset`,
+      { limit: PAGE_SIZE, offset }
+    ),
+    queryAll<{ name: string; count: number }>(
       `SELECT industry as name, COUNT(*) as count
        FROM jobs WHERE industry IS NOT NULL AND industry <> ''
        GROUP BY industry ORDER BY count DESC LIMIT 15`
-    )
-    .all() as { name: string; count: number }[];
+    ),
+    queryOne<{ c: number }>(
+      "SELECT COUNT(*) as c FROM jobs WHERE industry IS NOT NULL AND industry <> ''"
+    ),
+  ]);
 
-  const totalIndustryJobs = (
-    db
-      .prepare("SELECT COUNT(*) as c FROM jobs WHERE industry IS NOT NULL AND industry <> ''")
-      .get() as { c: number }
-  ).c;
+  const total = totalRow?.c ?? 0;
+  const totalIndustryJobs = totalIndustryJobsRow?.c ?? 0;
 
-  return { industries, top15, total, totalPages: Math.ceil(total / PAGE_SIZE), totalIndustryJobs };
+  return {
+    industries,
+    top15,
+    total,
+    totalPages: Math.ceil(total / PAGE_SIZE),
+    totalIndustryJobs,
+  };
 }
 
 export default async function IndustryPage({
@@ -50,9 +48,13 @@ export default async function IndustryPage({
 }) {
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, Math.min(parseInt(pageParam || "1", 10), 10000));
-  const { industries, top15, total, totalPages, totalIndustryJobs } = getIndustryData(page);
+  const { industries, top15, total, totalPages, totalIndustryJobs } =
+    await getIndustryData(page);
 
-  const leadingPct = totalIndustryJobs > 0 && top15[0] ? Math.round((top15[0].count / totalIndustryJobs) * 100) : 0;
+  const leadingPct =
+    totalIndustryJobs > 0 && top15[0]
+      ? Math.round((top15[0].count / totalIndustryJobs) * 100)
+      : 0;
   const avgJobsPerIndustry = total > 0 ? Math.round(totalIndustryJobs / total) : 0;
   const summaryCards: {
     title: string;

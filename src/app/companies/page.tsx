@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { queryOne, queryAll } from "@/lib/db";
 import CompaniesView from "./CompaniesView";
 
 export const dynamic = "force-dynamic";
@@ -14,57 +14,53 @@ export interface CompanyRow {
   lastPosted: string | null;
 }
 
-function getCompaniesData(page: number) {
-  const db = getDb();
+async function getCompaniesData(page: number) {
   const offset = (page - 1) * PAGE_SIZE;
 
-  const total = (
-    db
-      .prepare(
+  const [totalRow, companies, top15, totalCompanyJobsRow, singleJobCompaniesRow] =
+    await Promise.all([
+      queryOne<{ c: number }>(
         "SELECT COUNT(DISTINCT company) as c FROM jobs WHERE company IS NOT NULL AND company <> ''"
-      )
-      .get() as { c: number }
-  ).c;
-
-  const companies = db
-    .prepare(
-      `SELECT company as name, COUNT(*) as count,
-              GROUP_CONCAT(DISTINCT field) as fields,
-              GROUP_CONCAT(DISTINCT location) as locations,
-              MIN(posted_date) as firstPosted,
-              MAX(posted_date) as lastPosted
-       FROM jobs WHERE company IS NOT NULL AND company <> ''
-       GROUP BY company ORDER BY count DESC
-       LIMIT @limit OFFSET @offset`
-    )
-    .all({ limit: PAGE_SIZE, offset }) as CompanyRow[];
-
-  const top15 = db
-    .prepare(
-      `SELECT company as name, COUNT(*) as count
-       FROM jobs WHERE company IS NOT NULL AND company <> ''
-       GROUP BY company ORDER BY count DESC LIMIT 15`
-    )
-    .all() as { name: string; count: number }[];
-
-  const totalCompanyJobs = (
-    db
-      .prepare("SELECT COUNT(*) as c FROM jobs WHERE company IS NOT NULL AND company <> ''")
-      .get() as { c: number }
-  ).c;
-
-  const singleJobCompanies = (
-    db
-      .prepare(
+      ),
+      queryAll<CompanyRow>(
+        `SELECT company as name, COUNT(*) as count,
+                GROUP_CONCAT(DISTINCT field) as fields,
+                GROUP_CONCAT(DISTINCT location) as locations,
+                MIN(posted_date) as firstPosted,
+                MAX(posted_date) as lastPosted
+         FROM jobs WHERE company IS NOT NULL AND company <> ''
+         GROUP BY company ORDER BY count DESC
+         LIMIT :limit OFFSET :offset`,
+        { limit: PAGE_SIZE, offset }
+      ),
+      queryAll<{ name: string; count: number }>(
+        `SELECT company as name, COUNT(*) as count
+         FROM jobs WHERE company IS NOT NULL AND company <> ''
+         GROUP BY company ORDER BY count DESC LIMIT 15`
+      ),
+      queryOne<{ c: number }>(
+        "SELECT COUNT(*) as c FROM jobs WHERE company IS NOT NULL AND company <> ''"
+      ),
+      queryOne<{ c: number }>(
         `SELECT COUNT(*) as c FROM (
            SELECT company FROM jobs WHERE company IS NOT NULL AND company <> ''
            GROUP BY company HAVING COUNT(*) = 1
          )`
-      )
-      .get() as { c: number }
-  ).c;
+      ),
+    ]);
 
-  return { companies, total, top15, totalPages: Math.ceil(total / PAGE_SIZE), totalCompanyJobs, singleJobCompanies };
+  const total = totalRow?.c ?? 0;
+  const totalCompanyJobs = totalCompanyJobsRow?.c ?? 0;
+  const singleJobCompanies = singleJobCompaniesRow?.c ?? 0;
+
+  return {
+    companies,
+    total,
+    top15,
+    totalPages: Math.ceil(total / PAGE_SIZE),
+    totalCompanyJobs,
+    singleJobCompanies,
+  };
 }
 
 export default async function CompaniesPage({
@@ -74,7 +70,8 @@ export default async function CompaniesPage({
 }) {
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, Math.min(parseInt(pageParam || "1", 10), 10000));
-  const { companies, total, top15, totalPages, totalCompanyJobs, singleJobCompanies } = getCompaniesData(page);
+  const { companies, total, top15, totalPages, totalCompanyJobs, singleJobCompanies } =
+    await getCompaniesData(page);
 
   const avgJobsPerCompany = total > 0 ? Math.round(totalCompanyJobs / total) : 0;
   const singleJobPct = total > 0 ? Math.round((singleJobCompanies / total) * 100) : 0;

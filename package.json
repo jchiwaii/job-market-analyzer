@@ -11,7 +11,7 @@
     "scrape:deep": "tsx scripts/scrape-deep.ts"
   },
   "dependencies": {
-    "better-sqlite3": "^12.6.2",
+    "@libsql/client": "^0.14.0",
     "cheerio": "^1.2.0",
     "next": "16.1.6",
     "react": "19.2.3",
@@ -20,7 +20,6 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

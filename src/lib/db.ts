@@ -1,55 +1,27 @@
-import Database from "better-sqlite3";
-import path from "path";
+import { createClient, type Client, type InValue } from "@libsql/client";
 
-const DB_PATH = path.join(process.cwd(), "data", "jobs.db");
+let _client: Client | null = null;
 
-let _db: Database.Database | null = null;
-
-export function getDb(): Database.Database {
-  if (!_db) {
-    _db = new Database(DB_PATH);
-    _db.pragma("journal_mode = WAL");
-    _db.pragma("busy_timeout = 5000");
-    _db.pragma("foreign_keys = ON");
-    initSchema(_db);
+export function getDb(): Client {
+  if (!_client) {
+    _client = createClient({
+      url: process.env.TURSO_DATABASE_URL!,
+      authToken: process.env.TURSO_AUTH_TOKEN,
+    });
   }
-  return _db;
+  return _client;
 }
 
-function initSchema(db: Database.Database) {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS jobs (
-      id            INTEGER PRIMARY KEY AUTOINCREMENT,
-      slug          TEXT UNIQUE NOT NULL,
-      url           TEXT NOT NULL,
-      title         TEXT NOT NULL,
-      company       TEXT,
-      field         TEXT,
-      location      TEXT,
-      experience    TEXT,
-      qualification TEXT,
-      job_type      TEXT,
-      industry      TEXT,
-      description   TEXT,
-      posted_date   TEXT,
-      deadline      TEXT,
-      scraped_at    TEXT NOT NULL DEFAULT (datetime('now'))
-    );
+type Args = Record<string, InValue> | InValue[];
 
-    CREATE INDEX IF NOT EXISTS idx_jobs_field ON jobs(field);
-    CREATE INDEX IF NOT EXISTS idx_jobs_location ON jobs(location);
-    CREATE INDEX IF NOT EXISTS idx_jobs_company ON jobs(company);
-    CREATE INDEX IF NOT EXISTS idx_jobs_posted ON jobs(posted_date);
+export async function queryOne<T>(sql: string, args?: Args): Promise<T | null> {
+  const result = await getDb().execute({ sql, args: (args ?? []) as InValue[] });
+  return result.rows.length > 0 ? (result.rows[0] as unknown as T) : null;
+}
 
-    CREATE TABLE IF NOT EXISTS scrape_runs (
-      id            INTEGER PRIMARY KEY AUTOINCREMENT,
-      started_at    TEXT NOT NULL,
-      completed_at  TEXT,
-      pages_scraped INTEGER DEFAULT 0,
-      jobs_found    INTEGER DEFAULT 0,
-      new_jobs      INTEGER DEFAULT 0
-    );
-  `);
+export async function queryAll<T>(sql: string, args?: Args): Promise<T[]> {
+  const result = await getDb().execute({ sql, args: (args ?? []) as InValue[] });
+  return result.rows as unknown as T[];
 }
 
 export interface JobRow {
@@ -68,37 +40,4 @@ export interface JobRow {
   posted_date: string | null;
   deadline: string | null;
   scraped_at: string;
-}
-
-export function insertJob(job: Omit<JobRow, "id" | "scraped_at">) {
-  const db = getDb();
-  const stmt = db.prepare(`
-    INSERT OR IGNORE INTO jobs (slug, url, title, company, field, location, experience, qualification, job_type, industry, description, posted_date, deadline)
-    VALUES (@slug, @url, @title, @company, @field, @location, @experience, @qualification, @job_type, @industry, @description, @posted_date, @deadline)
-  `);
-  return stmt.run(job);
-}
-
-export function jobExists(slug: string): boolean {
-  const db = getDb();
-  const row = db.prepare("SELECT 1 FROM jobs WHERE slug = ?").get(slug);
-  return !!row;
-}
-
-export function startScrapeRun(): number {
-  const db = getDb();
-  const result = db
-    .prepare("INSERT INTO scrape_runs (started_at) VALUES (datetime('now'))")
-    .run();
-  return Number(result.lastInsertRowid);
-}
-
-export function finishScrapeRun(
-  runId: number,
-  stats: { pages_scraped: number; jobs_found: number; new_jobs: number }
-) {
-  const db = getDb();
-  db.prepare(
-    `UPDATE scrape_runs SET completed_at = datetime('now'), pages_scraped = @pages_scraped, jobs_found = @jobs_found, new_jobs = @new_jobs WHERE id = @id`
-  ).run({ id: runId, ...stats });
 }

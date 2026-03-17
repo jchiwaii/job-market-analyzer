@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { queryAll } from "@/lib/db";
 import InsightsView from "./InsightsView";
 
 export const dynamic = "force-dynamic";
@@ -36,11 +36,17 @@ export interface QualificationByFieldRow {
   count: number;
 }
 
-function getInsightsData() {
-  const db = getDb();
-
-  const workTypes = db
-    .prepare(
+async function getInsightsData() {
+  const [
+    workTypes,
+    experienceBuckets,
+    companyConcentration,
+    fieldLocationCombos,
+    experienceByField,
+    qualificationByFieldRaw,
+    topFieldsByCount,
+  ] = await Promise.all([
+    queryAll<WorkTypeRow>(
       `SELECT
         CASE
           WHEN job_type LIKE '%Remote%' THEN 'Remote'
@@ -53,11 +59,8 @@ function getInsightsData() {
         COUNT(*) as count
       FROM jobs WHERE job_type IS NOT NULL
       GROUP BY category ORDER BY count DESC`
-    )
-    .all() as WorkTypeRow[];
-
-  const experienceBuckets = db
-    .prepare(
+    ),
+    queryAll<ExperienceBucketRow>(
       `SELECT
         CASE
           WHEN experience IN ('1 year','1 Year','1-2 years','1 - 2 years') OR experience LIKE '1 year%' THEN '0–1 year'
@@ -76,11 +79,8 @@ function getInsightsData() {
         WHEN '0–1 year' THEN 1 WHEN '2–3 years' THEN 2 WHEN '3–5 years' THEN 3
         WHEN '4–5 years' THEN 4 WHEN '6–7 years' THEN 5 WHEN '8–9 years' THEN 6
         WHEN '10+ years' THEN 7 END`
-    )
-    .all() as ExperienceBucketRow[];
-
-  const companyConcentration = db
-    .prepare(
+    ),
+    queryAll<CompanyConcentrationRow>(
       `SELECT
         CASE
           WHEN cnt = 1 THEN '1 job'
@@ -96,22 +96,16 @@ function getInsightsData() {
         GROUP BY company
       ) GROUP BY bucket
       ORDER BY CASE bucket WHEN '1 job' THEN 1 WHEN '2–5 jobs' THEN 2 WHEN '6–20 jobs' THEN 3 WHEN '21–100 jobs' THEN 4 ELSE 5 END`
-    )
-    .all() as CompanyConcentrationRow[];
-
-  const fieldLocationCombos = db
-    .prepare(
+    ),
+    queryAll<FieldLocationRow>(
       `SELECT field, location, COUNT(*) as count
        FROM jobs
        WHERE field IS NOT NULL AND location IS NOT NULL
          AND location <> 'Nairobi' AND location <> ''
        GROUP BY field, location
        ORDER BY count DESC LIMIT 15`
-    )
-    .all() as FieldLocationRow[];
-
-  const experienceByField = db
-    .prepare(
+    ),
+    queryAll<ExperienceByFieldRow>(
       `SELECT field,
         ROUND(AVG(CAST(REPLACE(REPLACE(experience, ' years', ''), ' year', '') AS FLOAT)), 1) as avg_years,
         COUNT(*) as count
@@ -123,30 +117,22 @@ function getInsightsData() {
       GROUP BY field
       HAVING count > 100
       ORDER BY avg_years DESC LIMIT 12`
-    )
-    .all() as ExperienceByFieldRow[];
-
-  const qualificationByFieldRaw = db
-    .prepare(
+    ),
+    queryAll<QualificationByFieldRow>(
       `SELECT field, qualification, COUNT(*) as count
        FROM jobs WHERE field IS NOT NULL AND qualification IS NOT NULL AND qualification <> ''
        GROUP BY field, qualification
        ORDER BY field, count DESC`
-    )
-    .all() as QualificationByFieldRow[];
-
-  // Top 10 fields by job count
-  const topFieldsByCount = db
-    .prepare(
+    ),
+    queryAll<{ field: string; count: number }>(
       `SELECT field, COUNT(*) as count
        FROM jobs WHERE field IS NOT NULL AND field <> ''
        GROUP BY field ORDER BY count DESC LIMIT 10`
-    )
-    .all() as { field: string; count: number }[];
+    ),
+  ]);
 
   const topFieldSet = new Set(topFieldsByCount.map((r) => r.field));
 
-  // Pick top qualification per field for top 10 fields
   const seenFields = new Set<string>();
   const topQualByField: QualificationByFieldRow[] = [];
   for (const row of qualificationByFieldRaw) {
@@ -167,7 +153,7 @@ function getInsightsData() {
   };
 }
 
-export default function InsightsPage() {
+export default async function InsightsPage() {
   const {
     workTypes,
     experienceBuckets,
@@ -175,7 +161,7 @@ export default function InsightsPage() {
     fieldLocationCombos,
     experienceByField,
     topQualByField,
-  } = getInsightsData();
+  } = await getInsightsData();
 
   const totalWorkType = workTypes.reduce((s, r) => s + r.count, 0);
   const remoteCount = workTypes.find((w) => w.category === "Remote")?.count ?? 0;
@@ -227,7 +213,7 @@ export default function InsightsPage() {
           Insights
         </h1>
         <p className="mt-1 max-w-3xl text-sm text-[#6E7875]">
-          What does the data actually tell us? Here's a closer look at how employers hire, what
+          What does the data actually tell us? Here&apos;s a closer look at how employers hire, what
           experience they expect, and where the real demand sits.
         </p>
       </div>

@@ -1,52 +1,40 @@
-import { getDb } from "@/lib/db";
+import { queryOne, queryAll } from "@/lib/db";
 import LocationsView from "./LocationsView";
 
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 10;
 
-function getLocationsData(page: number) {
-  const db = getDb();
+async function getLocationsData(page: number) {
   const offset = (page - 1) * PAGE_SIZE;
 
-  const nairobiCount = (
-    db
-      .prepare("SELECT COUNT(*) as c FROM jobs WHERE location = 'Nairobi'")
-      .get() as { c: number }
-  ).c;
-
-  const totalWithLocation = (
-    db
-      .prepare(
-        "SELECT COUNT(*) as c FROM jobs WHERE location IS NOT NULL AND location <> ''"
-      )
-      .get() as { c: number }
-  ).c;
-
-  const total = (
-    db
-      .prepare(
-        "SELECT COUNT(DISTINCT location) as c FROM jobs WHERE location IS NOT NULL AND location <> '' AND location <> 'Nairobi'"
-      )
-      .get() as { c: number }
-  ).c;
-
-  const locations = db
-    .prepare(
+  const [nairobiRow, totalWithLocationRow, totalRow, locations, top15] = await Promise.all([
+    queryOne<{ c: number }>(
+      "SELECT COUNT(*) as c FROM jobs WHERE location = 'Nairobi'"
+    ),
+    queryOne<{ c: number }>(
+      "SELECT COUNT(*) as c FROM jobs WHERE location IS NOT NULL AND location <> ''"
+    ),
+    queryOne<{ c: number }>(
+      "SELECT COUNT(DISTINCT location) as c FROM jobs WHERE location IS NOT NULL AND location <> '' AND location <> 'Nairobi'"
+    ),
+    queryAll<{ name: string; count: number }>(
       `SELECT location as name, COUNT(*) as count
        FROM jobs WHERE location IS NOT NULL AND location <> '' AND location <> 'Nairobi'
        GROUP BY location ORDER BY count DESC
-       LIMIT @limit OFFSET @offset`
-    )
-    .all({ limit: PAGE_SIZE, offset }) as { name: string; count: number }[];
-
-  const top15 = db
-    .prepare(
+       LIMIT :limit OFFSET :offset`,
+      { limit: PAGE_SIZE, offset }
+    ),
+    queryAll<{ name: string; count: number }>(
       `SELECT location as name, COUNT(*) as count
        FROM jobs WHERE location IS NOT NULL AND location <> '' AND location <> 'Nairobi'
        GROUP BY location ORDER BY count DESC LIMIT 15`
-    )
-    .all() as { name: string; count: number }[];
+    ),
+  ]);
+
+  const nairobiCount = nairobiRow?.c ?? 0;
+  const totalWithLocation = totalWithLocationRow?.c ?? 0;
+  const total = totalRow?.c ?? 0;
 
   return {
     locations,
@@ -66,9 +54,10 @@ export default async function LocationsPage({
   const { page: pageParam } = await searchParams;
   const page = Math.max(1, Math.min(parseInt(pageParam || "1", 10), 10000));
   const { locations, top15, total, totalPages, nairobiCount, totalWithLocation } =
-    getLocationsData(page);
+    await getLocationsData(page);
 
-  const nairobiPct = totalWithLocation > 0 ? Math.round((nairobiCount / totalWithLocation) * 100) : 0;
+  const nairobiPct =
+    totalWithLocation > 0 ? Math.round((nairobiCount / totalWithLocation) * 100) : 0;
   const outsideNairobi = totalWithLocation - nairobiCount;
   const summaryCards: {
     title: string;

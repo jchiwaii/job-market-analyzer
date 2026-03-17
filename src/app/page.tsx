@@ -1,77 +1,53 @@
 import KpiCard from "@/components/KpiCard";
-import { getDb } from "@/lib/db";
+import { queryOne, queryAll } from "@/lib/db";
 import DashboardCharts from "./DashboardCharts";
 
 export const dynamic = "force-dynamic";
 
-function getOverviewData() {
-  const db = getDb();
-
-  const totalJobs = (
-    db.prepare("SELECT COUNT(*) as c FROM jobs").get() as { c: number }
-  ).c;
-
-  const totalCompanies = (
-    db
-      .prepare(
-        "SELECT COUNT(DISTINCT company) as c FROM jobs WHERE company IS NOT NULL"
-      )
-      .get() as { c: number }
-  ).c;
-
-  const totalFields = (
-    db
-      .prepare(
-        "SELECT COUNT(DISTINCT field) as c FROM jobs WHERE field IS NOT NULL"
-      )
-      .get() as { c: number }
-  ).c;
-
-  const totalLocations = (
-    db
-      .prepare(
-        "SELECT COUNT(DISTINCT location) as c FROM jobs WHERE location IS NOT NULL"
-      )
-      .get() as { c: number }
-  ).c;
-
-  const topFields = db
-    .prepare(
-      `SELECT field as name, COUNT(*) as count
-       FROM jobs WHERE field IS NOT NULL
-       GROUP BY field ORDER BY count DESC LIMIT 8`
-    )
-    .all() as { name: string; count: number }[];
-
-  const topLocations = db
-    .prepare(
-      `SELECT location as name, COUNT(*) as count
-       FROM jobs WHERE location IS NOT NULL
-       GROUP BY location ORDER BY count DESC LIMIT 8`
-    )
-    .all() as { name: string; count: number }[];
-
-  const topCompanies = db
-    .prepare(
-      `SELECT company as name, COUNT(*) as count
-       FROM jobs WHERE company IS NOT NULL
-       GROUP BY company ORDER BY count DESC LIMIT 8`
-    )
-    .all() as { name: string; count: number }[];
+async function getOverviewData() {
+  const [
+    totalJobsRow,
+    totalCompaniesRow,
+    totalFieldsRow,
+    totalLocationsRow,
+    topFields,
+    topLocations,
+    topCompanies,
+  ] = await Promise.all([
+    queryOne<{ c: number }>("SELECT COUNT(*) as c FROM jobs"),
+    queryOne<{ c: number }>(
+      "SELECT COUNT(DISTINCT company) as c FROM jobs WHERE company IS NOT NULL"
+    ),
+    queryOne<{ c: number }>(
+      "SELECT COUNT(DISTINCT field) as c FROM jobs WHERE field IS NOT NULL"
+    ),
+    queryOne<{ c: number }>(
+      "SELECT COUNT(DISTINCT location) as c FROM jobs WHERE location IS NOT NULL"
+    ),
+    queryAll<{ name: string; count: number }>(
+      "SELECT field as name, COUNT(*) as count FROM jobs WHERE field IS NOT NULL GROUP BY field ORDER BY count DESC LIMIT 8"
+    ),
+    queryAll<{ name: string; count: number }>(
+      "SELECT location as name, COUNT(*) as count FROM jobs WHERE location IS NOT NULL GROUP BY location ORDER BY count DESC LIMIT 8"
+    ),
+    queryAll<{ name: string; count: number }>(
+      "SELECT company as name, COUNT(*) as count FROM jobs WHERE company IS NOT NULL GROUP BY company ORDER BY count DESC LIMIT 8"
+    ),
+  ]);
 
   return {
-    totalJobs,
-    totalCompanies,
-    totalFields,
-    totalLocations,
+    totalJobs: totalJobsRow?.c ?? 0,
+    totalCompanies: totalCompaniesRow?.c ?? 0,
+    totalFields: totalFieldsRow?.c ?? 0,
+    totalLocations: totalLocationsRow?.c ?? 0,
     topFields,
     topLocations,
     topCompanies,
   };
 }
 
-export default function DashboardPage() {
-  const data = getOverviewData();
+export default async function DashboardPage() {
+  const data = await getOverviewData();
 
   return (
     <>
