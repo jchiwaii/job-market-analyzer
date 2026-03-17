@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Urbanist } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import UserProfile from "@/components/UserProfile";
+import AppFooter from "@/components/AppFooter";
 import "./globals.css";
 
 const urbanist = Urbanist({
@@ -38,6 +39,7 @@ export default function RootLayout({
                 />
               </div>
               {children}
+              <AppFooter />
             </div>
           </main>
         </div>

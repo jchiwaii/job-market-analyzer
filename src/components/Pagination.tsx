@@ -7,6 +7,7 @@ interface Props {
   totalPages: number;
   basePath: string;
   theme?: "default" | "fields";
+  queryParams?: Record<string, string | undefined>;
 }
 
 export default function Pagination({
@@ -14,10 +15,18 @@ export default function Pagination({
   totalPages,
   basePath,
   theme = "default",
+  queryParams,
 }: Props) {
   const router = useRouter();
 
-  const go = (p: number) => router.push(`${basePath}?page=${p}`);
+  const go = (p: number) => {
+    const sp = new URLSearchParams();
+    Object.entries(queryParams ?? {}).forEach(([key, value]) => {
+      if (value) sp.set(key, value);
+    });
+    if (p > 1) sp.set("page", String(p));
+    router.push(`${basePath}${sp.toString() ? `?${sp.toString()}` : ""}`);
+  };
 
   const pages: number[] = [];
   if (totalPages <= 7) {

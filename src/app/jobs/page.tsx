@@ -1,5 +1,4 @@
 import { getDb } from "@/lib/db";
-import KpiCard from "@/components/KpiCard";
 import JobsTable from "./JobsTable";
 
 export const dynamic = "force-dynamic";
@@ -105,26 +104,65 @@ function getGlobalStats() {
 export default async function JobsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const [data, global] = await Promise.all([getJobsData(sp), Promise.resolve(getGlobalStats())]);
+  const activeFilterCount = [sp.q, sp.field, sp.location].filter(Boolean).length;
+  const withDatesPct = global.totalAll > 0 ? Math.round((global.withDates / global.totalAll) * 100) : 0;
+  const summaryCards: {
+    title: string;
+    value: string;
+    subtitle?: string;
+    tone: string;
+  }[] = [
+    {
+      title: "Total Listings",
+      value: global.totalAll.toLocaleString(),
+      subtitle: "scraped from MyJobMag",
+      tone: "text-[#1E4841] bg-[#ECF4E9] border-[#D9E2D7]",
+    },
+    {
+      title: "Filtered Results",
+      value: data.total.toLocaleString(),
+      subtitle: activeFilterCount > 0 ? `${activeFilterCount} active filters` : "no active filters",
+      tone: "text-[#2F5F90] bg-[#EAF1F8] border-[#D6E1EE]",
+    },
+    {
+      title: "Hiring Companies",
+      value: global.uniqueCompanies.toLocaleString(),
+      subtitle: "unique employers",
+      tone: "text-[#9F6A1F] bg-[#FBF3E8] border-[#F0DFCA]",
+    },
+    {
+      title: "Dated Listings",
+      value: `${withDatesPct}%`,
+      subtitle: `${global.withDates.toLocaleString()} include posted dates`,
+      tone: "text-[#7F4A83] bg-[#F5ECF7] border-[#E8D7EC]",
+    },
+  ];
 
   return (
     <>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">All Jobs</h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          Browse {data.total.toLocaleString()} scraped jobs
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl font-bold tracking-tight text-[#23302D] sm:text-2xl lg:text-[30px]">
+          All Jobs
+        </h1>
+        <p className="mt-1 max-w-3xl text-sm text-[#6E7875]">
+          Browse {data.total.toLocaleString()} scraped jobs with field, location, and keyword
+          filters.
         </p>
       </div>
 
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KpiCard title="Total Listings" value={global.totalAll} subtitle="scraped from MyJobMag" accent="emerald" />
-        <KpiCard title="Hiring Companies" value={global.uniqueCompanies} subtitle="unique employers" accent="blue" />
-        <KpiCard title="Locations Covered" value={global.uniqueLocations} subtitle="cities & counties" accent="rose" />
-        <KpiCard
-          title="Dated Listings"
-          value={global.withDates.toLocaleString()}
-          subtitle="have a posted date (recent active)"
-          accent="amber"
-        />
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+        {summaryCards.map((card) => (
+          <div
+            key={card.title}
+            className={`rounded-2xl border p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)] ${card.tone}`}
+          >
+            <p className="text-xs font-semibold uppercase tracking-wide opacity-80">
+              {card.title}
+            </p>
+            <p className="mt-2 break-words text-lg font-semibold leading-snug">{card.value}</p>
+            {card.subtitle && <p className="mt-1 text-xs font-medium opacity-85">{card.subtitle}</p>}
+          </div>
+        ))}
       </div>
 
       <JobsTable
