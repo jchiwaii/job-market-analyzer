@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   title: "Kenya Job Market Analyzer",
   description:
     "Analyze job market trends in Kenya using data scraped from MyJobMag",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
