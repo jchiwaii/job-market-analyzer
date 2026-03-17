@@ -105,7 +105,7 @@ export default function JobsTable({
         <div>
           <label className="mb-1 block text-xs font-medium text-[#6B726F]">Field</label>
           <select
-            value={currentField || ""}
+            value={deriveFieldGroup(currentField) || ""}
             onChange={(e) =>
               navigate({
                 field: e.target.value || undefined,
@@ -128,7 +128,7 @@ export default function JobsTable({
         <div>
           <label className="mb-1 block text-xs font-medium text-[#6B726F]">Location</label>
           <select
-            value={currentLocation || ""}
+            value={deriveLocationGroup(currentLocation) || ""}
             onChange={(e) =>
               navigate({
                 location: e.target.value || undefined,
@@ -269,6 +269,16 @@ export default function JobsTable({
       />
     </section>
   );
+}
+
+function deriveFieldGroup(value?: string): string {
+  if (!value) return "";
+  return value.split(/\s*\/\s*/)[0].trim();
+}
+
+function deriveLocationGroup(value?: string): string {
+  if (!value) return "";
+  return value.split(/\s+/)[0].trim();
 }
 
 function SearchIcon() {

@@ -81,9 +81,27 @@ async function getJobsData(searchParams: { [key: string]: string | undefined }) 
     total,
     page,
     totalPages: Math.ceil(total / limit),
-    allFields: allFields.map((f) => f.field),
-    allLocations: allLocations.map((l) => l.location),
+    allFields: groupFields(allFields.map((f) => f.field)),
+    allLocations: groupLocations(allLocations.map((l) => l.location)),
   };
+}
+
+/** "Administration / Secretarial" → "Administration", deduped + sorted */
+function groupFields(fields: string[]): string[] {
+  const seen = new Set<string>();
+  for (const f of fields) {
+    seen.add(f.split(/\s*\/\s*/)[0].trim());
+  }
+  return Array.from(seen).sort((a, b) => a.localeCompare(b));
+}
+
+/** "Baringo County" → "Baringo", "Nairobi" → "Nairobi", deduped + sorted */
+function groupLocations(locations: string[]): string[] {
+  const seen = new Set<string>();
+  for (const l of locations) {
+    seen.add(l.split(/\s+/)[0].trim());
+  }
+  return Array.from(seen).sort((a, b) => a.localeCompare(b));
 }
 
 function getGlobalStats() {
