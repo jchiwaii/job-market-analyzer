@@ -137,23 +137,29 @@ function BrandSymbol({
   muted?: boolean;
   mono?: boolean;
 }) {
-  const dark = mono ? "#1e4841" : muted ? "#bbf49c" : "#1e4841";
-  const light = mono ? "#ecf4e9" : muted ? "#ecf4e9" : "#fbfbfc";
+  const redStroke = mono ? "#1E4841" : muted ? "#ECF4E9" : "#FF2533";
+  const blueStroke = mono ? "#1E4841" : muted ? "#C8D9C6" : "#1B88E8";
+  const dotFill = mono ? "#1E4841" : muted ? "#BBF49C" : "#FF2533";
+  const shadowFill = mono ? "rgba(30, 72, 65, 0.16)" : "rgba(10, 17, 15, 0.18)";
 
   return (
-    <svg className={className} viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="5" cy="17" r="5" fill={dark} />
-      <circle cx="17" cy="17" r="5" fill={dark} />
-      <circle cx="17" cy="5" r="5" fill={dark} />
-      <circle cx="5" cy="5" r="5" fill={dark} />
+    <svg className={className} viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="35" cy="60" rx="23" ry="5" fill={shadowFill} />
       <path
-        d="M8.5 11.4V10a2.5 2.5 0 0 1 4.9-.8"
-        stroke={light}
-        strokeWidth="1.3"
+        d="M12 55C16 40 22 24 28 24C35 24 34 48 40 51C47 54 50 43 59 44C64 45 67 48 70 51"
+        stroke={blueStroke}
+        strokeWidth="6"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <rect x="8.2" y="11.1" width="5.8" height="4.6" rx="1.6" fill={light} />
-      <circle cx="11.1" cy="13.4" r="0.85" fill={dark} />
+      <path
+        d="M10 58C15 43 22 18 29 18C38 18 35 46 42 48C49 50 51 36 62 37C67 38 70 41 72 44"
+        stroke={redStroke}
+        strokeWidth="6.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <ellipse cx="29.5" cy="8.5" rx="8.5" ry="5.5" transform="rotate(-30 29.5 8.5)" fill={dotFill} />
     </svg>
   );
 }
