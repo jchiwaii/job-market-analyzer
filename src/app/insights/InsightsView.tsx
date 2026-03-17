@@ -50,7 +50,10 @@ export default function InsightsView({
       : 0;
 
   const totalExpCount = experienceBuckets.reduce((s, r) => s + r.count, 0);
-  const topBucket = experienceBuckets[0];
+  const topBucket = experienceBuckets.reduce(
+    (max, b) => (b.count > (max?.count ?? 0) ? b : max),
+    experienceBuckets[0]
+  );
   const topBucketPct =
     totalExpCount > 0 ? Math.round(((topBucket?.count ?? 0) / totalExpCount) * 100) : 0;
   const entryBucket = experienceBuckets.find((b) => b.bucket === "0–1 year");
@@ -455,7 +458,10 @@ function ExperienceDemandIllustration({
   const n = experienceBuckets.length;
   const gapW = 7;
   const barW = Math.floor((availW - gapW * (n - 1)) / n);
-  const peakBucket = experienceBuckets[0];
+  const peakBucket = experienceBuckets.reduce(
+    (max, b) => (b.count > (max?.count ?? 0) ? b : max),
+    experienceBuckets[0]
+  );
 
   const peakIdx = experienceBuckets.findIndex((b) => b.bucket === peakBucket.bucket);
   const peakH = (peakBucket.count / maxCount) * chartH;
