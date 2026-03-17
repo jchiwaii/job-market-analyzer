@@ -1,5 +1,5 @@
 import { startScrapeRun, finishScrapeRun } from "../src/lib/db";
-import { runFullScrape } from "../src/lib/scraper";
+import { runFullScrape } from "./scraper";
 
 const maxPages = parseInt(process.argv[2] || "20", 10);
 

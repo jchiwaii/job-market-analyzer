@@ -20,7 +20,7 @@ import {
   startScrapeRun,
   finishScrapeRun,
 } from "../src/lib/db";
-import { scrapeJobDetail } from "../src/lib/scraper";
+import { scrapeJobDetail } from "./scraper";
 
 const BASE_URL = "https://www.myjobmag.co.ke";
 const DELAY_MS = 1000; // 1 s between every request (polite but faster than default 1.5 s)
