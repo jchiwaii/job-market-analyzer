@@ -6,9 +6,15 @@ interface Props {
   page: number;
   totalPages: number;
   basePath: string;
+  theme?: "default" | "fields";
 }
 
-export default function Pagination({ page, totalPages, basePath }: Props) {
+export default function Pagination({
+  page,
+  totalPages,
+  basePath,
+  theme = "default",
+}: Props) {
   const router = useRouter();
 
   const go = (p: number) => router.push(`${basePath}?page=${p}`);
@@ -24,12 +30,21 @@ export default function Pagination({ page, totalPages, basePath }: Props) {
     for (let i = page - 3; i <= page + 3; i++) pages.push(i);
   }
 
+  const isFieldsTheme = theme === "fields";
+  const navButtonClass = isFieldsTheme
+    ? "rounded-lg border border-[#1E4841] bg-[#1E4841] px-4 py-2 text-sm font-medium text-[#ECF4E9] transition-colors hover:bg-[#173832] disabled:cursor-not-allowed disabled:border-[#D9E2D7] disabled:bg-[#ECF4E9] disabled:text-[#9AA6A2] disabled:opacity-100"
+    : "rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800";
+  const pageButtonBaseClass = isFieldsTheme
+    ? "h-8 w-8 rounded-lg text-sm font-medium transition-colors text-[#36514B] hover:bg-[#ECF4E9]"
+    : "h-8 w-8 rounded-lg text-sm font-medium transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400";
+  const activePageClass = isFieldsTheme ? "bg-[#1E4841] text-white" : "bg-emerald-600 text-white";
+
   return (
     <div className="mt-4 flex items-center justify-between gap-2">
       <button
         onClick={() => go(page - 1)}
         disabled={page <= 1}
-        className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+        className={navButtonClass}
       >
         ← Previous
       </button>
@@ -39,11 +54,7 @@ export default function Pagination({ page, totalPages, basePath }: Props) {
           <button
             key={p}
             onClick={() => go(p)}
-            className={`h-8 w-8 rounded-lg text-sm font-medium transition-colors ${
-              p === page
-                ? "bg-emerald-600 text-white"
-                : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
-            }`}
+            className={`${pageButtonBaseClass} ${p === page ? activePageClass : ""}`.trim()}
           >
             {p}
           </button>
@@ -53,7 +64,7 @@ export default function Pagination({ page, totalPages, basePath }: Props) {
       <button
         onClick={() => go(page + 1)}
         disabled={page >= totalPages}
-        className="rounded-lg border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
+        className={navButtonClass}
       >
         Next →
       </button>
