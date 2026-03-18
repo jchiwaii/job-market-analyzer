@@ -1,7 +1,8 @@
 import { queryAll } from "@/lib/db";
+
 import InsightsView from "./InsightsView";
 
-export const revalidate = 86400;
+export const dynamic = "force-dynamic";
 
 export interface WorkTypeRow {
   category: string;

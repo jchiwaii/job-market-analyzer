@@ -1,7 +1,8 @@
 import { queryOne, queryAll } from "@/lib/db";
+
 import LocationsView from "./LocationsView";
 
-export const revalidate = 86400;
+export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 10;
 

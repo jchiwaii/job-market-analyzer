@@ -1,7 +1,7 @@
 import { queryOne, queryAll } from "@/lib/db";
 import JobsTable from "./JobsTable";
 
-export const revalidate = 86400;
+export const dynamic = "force-dynamic";
 
 export interface JobItem {
   id: number;
