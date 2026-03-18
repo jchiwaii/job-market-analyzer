@@ -31,7 +31,7 @@ export default function Sidebar() {
     <>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="fixed top-3 left-3 z-50 flex h-10 w-10 items-center justify-center rounded-xl border border-[#d6dfd4] bg-[#f9fbfa] text-[#24302c] shadow-sm md:hidden"
+        className="fixed top-4 left-4 z-50 flex h-10 w-10 items-center justify-center rounded-xl border border-[#d6dfd4] bg-[#f9fbfa] text-[#24302c] shadow-sm md:hidden"
         aria-label="Toggle menu"
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
