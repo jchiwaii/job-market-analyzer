@@ -31,7 +31,7 @@ export default function Sidebar() {
     <>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="fixed top-4 left-4 z-50 rounded-xl border border-[#d6dfd4] bg-[#f9fbfa] p-2 text-[#24302c] shadow-sm lg:hidden"
+        className="fixed top-3 left-3 z-50 flex h-10 w-10 items-center justify-center rounded-xl border border-[#d6dfd4] bg-[#f9fbfa] text-[#24302c] shadow-sm md:hidden"
         aria-label="Toggle menu"
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -51,8 +51,9 @@ export default function Sidebar() {
         />
       )}
 
+      {/* Mobile drawer */}
       <aside
-        className={`fixed top-0 left-0 z-40 h-screen w-[192px] border-r border-[#d9e2d7] bg-[#ecf4e9] px-4 py-[22px] transition-transform lg:static lg:h-auto lg:translate-x-0 ${
+        className={`fixed top-0 left-0 z-40 h-screen w-[192px] border-r border-[#d9e2d7] bg-[#ecf4e9] px-4 py-[22px] transition-transform md:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -64,38 +65,99 @@ export default function Sidebar() {
             </div>
           </header>
 
-          <nav className="mt-5 flex flex-1 flex-col gap-2">
+          <NavList pathname={pathname} onItemClick={() => setOpen(false)} />
+
+          <PromoCard />
+        </div>
+      </aside>
+
+      {/* Tablet icon rail */}
+      <aside className="hidden h-screen w-[72px] border-r border-[#d9e2d7] bg-[#ecf4e9] md:flex lg:hidden">
+        <div className="flex h-full w-full flex-col items-center py-5">
+          <div className="flex h-[38px] w-[38px] items-center justify-center">
+            <BrandSymbol className="h-[22px] w-[22px]" />
+          </div>
+
+          <div className="mt-5 flex flex-1 flex-col items-center gap-2">
             {NAV_ITEMS.map((item) => {
               const active = pathname === item.href;
-
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setOpen(false)}
-                  className={`flex h-10 items-center gap-3 rounded-full px-4 transition-colors ${
+                  title={item.label}
+                  className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
                     active
                       ? "bg-[#bbf49c] text-[#24302c]"
                       : "text-[#6b726f] hover:bg-[#e4ece1] hover:text-[#24302c]"
                   }`}
                 >
                   <item.icon className="h-6 w-6" />
-                  <span className="text-sm font-semibold leading-none">{item.label}</span>
-
                   {item.badge && (
-                    <span className="ml-auto flex items-center gap-2">
-                      {item.badge && <Badge>{item.badge}</Badge>}
+                    <span className="absolute top-0 right-0">
+                      <Badge>{item.badge}</Badge>
                     </span>
                   )}
                 </Link>
               );
             })}
-          </nav>
+          </div>
+        </div>
+      </aside>
 
+      {/* Desktop full sidebar */}
+      <aside className="hidden h-screen w-[192px] border-r border-[#d9e2d7] bg-[#ecf4e9] px-4 py-[22px] lg:flex">
+        <div className="flex h-full flex-col">
+          <header className="flex h-[38px] items-center px-2">
+            <div className="flex items-center gap-3">
+              <BrandSymbol className="h-[22px] w-[22px]" />
+              <span className="text-lg font-bold tracking-tight text-[#24302c]">MyJobMag</span>
+            </div>
+          </header>
+
+          <NavList pathname={pathname} />
           <PromoCard />
         </div>
       </aside>
     </>
+  );
+}
+
+function NavList({
+  pathname,
+  onItemClick,
+}: {
+  pathname: string;
+  onItemClick?: () => void;
+}) {
+  return (
+    <nav className="mt-5 flex flex-1 flex-col gap-2">
+      {NAV_ITEMS.map((item) => {
+        const active = pathname === item.href;
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onItemClick}
+            className={`flex h-10 items-center gap-3 rounded-full px-4 transition-colors ${
+              active
+                ? "bg-[#bbf49c] text-[#24302c]"
+                : "text-[#6b726f] hover:bg-[#e4ece1] hover:text-[#24302c]"
+            }`}
+          >
+            <item.icon className="h-6 w-6" />
+            <span className="text-sm font-semibold leading-none">{item.label}</span>
+
+            {item.badge && (
+              <span className="ml-auto flex items-center gap-2">
+                {item.badge && <Badge>{item.badge}</Badge>}
+              </span>
+            )}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
 

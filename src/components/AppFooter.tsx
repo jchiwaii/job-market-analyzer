@@ -7,7 +7,7 @@ export default function AppFooter() {
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs lg:justify-start">
           <p className="font-medium text-[#24302C]">Copyright © {year} John Chiwai</p>
           <a
-            href="https://medium.com/@chiwai.kiriba"
+            href="https://medium.com/@chiwai.kiriba/i-analyzed-60-000-job-listings-in-kenya-heres-what-i-found-929724907985"
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold text-[#1E4841] underline-offset-2 transition-colors hover:text-[#173832] hover:underline"
