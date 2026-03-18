@@ -56,7 +56,7 @@ export default function CompaniesView({
 
       <div className="rounded-2xl border border-[#E4E8E6] bg-white p-4 sm:p-5">
         <div className="mb-4 flex flex-col gap-3 lg:mb-5 lg:flex-row lg:items-center lg:justify-between">
-          <h3 className="whitespace-nowrap text-[17px] font-semibold text-[#24302C]">
+          <h3 className="text-[17px] font-semibold text-[#24302C] sm:whitespace-nowrap">
             All Companies ({total.toLocaleString()})
           </h3>
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">

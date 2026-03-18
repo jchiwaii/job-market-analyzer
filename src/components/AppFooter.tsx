@@ -3,8 +3,8 @@ export default function AppFooter() {
 
   return (
     <footer className="mt-8 border-t border-[#E4E8E6] pt-4 pb-2">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+      <div className="flex flex-col items-center gap-3 text-center lg:flex-row lg:items-center lg:justify-between lg:text-left">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs lg:justify-start">
           <p className="font-medium text-[#24302C]">Copyright © {year} John Chiwai</p>
           <a
             href="https://medium.com/@chiwai.kiriba"
@@ -16,7 +16,7 @@ export default function AppFooter() {
           </a>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 text-xs">
+        <div className="flex flex-wrap items-center justify-center gap-3 text-xs lg:justify-end">
           <a
             href="https://www.linkedin.com/in/john-chiwai/"
             target="_blank"
