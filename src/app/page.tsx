@@ -2,7 +2,7 @@ import KpiCard from "@/components/KpiCard";
 import { queryOne, queryAll } from "@/lib/db";
 import DashboardCharts from "./DashboardCharts";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 async function getOverviewData() {
   const [

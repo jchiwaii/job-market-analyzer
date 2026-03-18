@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { queryOne, queryAll } from "@/lib/db";
 import type { JobRow } from "@/lib/db";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl;

@@ -1,7 +1,7 @@
 import { queryOne, queryAll } from "@/lib/db";
 import TrendsCharts from "./TrendsCharts";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 async function getTrendsData() {
   const [totalJobsRow, jobsWithDatesRow, monthly] = await Promise.all([

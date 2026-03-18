@@ -1,7 +1,7 @@
 import { queryOne, queryAll } from "@/lib/db";
 import CompaniesView from "./CompaniesView";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 const PAGE_SIZE = 10;
 
